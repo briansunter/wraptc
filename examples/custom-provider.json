@@ -1,0 +1,70 @@
+{
+  "routing": {
+    "defaultOrder": [
+      "my-local-llm",
+      "qwen-code",
+      "gemini"
+    ]
+  },
+  "providers": {
+    "my-local-llm": {
+      "binary": "/usr/local/bin/my-llm-cli",
+      "argsTemplate": [
+        "--model",
+        "gpt-4",
+        "--temperature",
+        "0.7",
+        "--prompt",
+        "{{prompt}}"
+      ],
+      "streamingMode": "line",
+      "capabilities": [
+        "generate",
+        "explain"
+      ],
+      "jsonMode": "none"
+    },
+    "qwen-code": {
+      "binary": "qwen",
+      "args": [],
+      "jsonMode": "flag",
+      "jsonFlag": "--json",
+      "streamingMode": "jsonl",
+      "capabilities": [
+        "generate",
+        "edit",
+        "explain",
+        "test"
+      ]
+    },
+    "gemini": {
+      "binary": "gemini",
+      "args": [],
+      "jsonMode": "flag",
+      "jsonFlag": "--output-format",
+      "streamingMode": "jsonl",
+      "capabilities": [
+        "generate",
+        "edit",
+        "explain",
+        "test"
+      ]
+    }
+  },
+  "credits": {
+    "providers": {
+      "my-local-llm": {
+        "dailyRequestLimit": 10000,
+        "resetHourUtc": 0
+      },
+      "qwen-code": {
+        "dailyRequestLimit": 2000,
+        "resetHourUtc": 0
+      },
+      "gemini": {
+        "dailyRequestLimit": 5000,
+        "resetHourUtc": 0
+      }
+    }
+  }
+}

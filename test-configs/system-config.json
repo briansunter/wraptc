@@ -1,0 +1,18 @@
+{
+  "routing": {
+    "defaultOrder": [
+      "system-provider"
+    ]
+  },
+  "providers": {
+    "system-provider": {
+      "binary": "/usr/bin/system-provider",
+      "args": [],
+      "jsonMode": "none",
+      "streamingMode": "line",
+      "capabilities": [
+        "generate"
+      ]
+    }
+  }
+}

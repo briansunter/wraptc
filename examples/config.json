@@ -1,0 +1,83 @@
+{
+  "routing": {
+    "defaultOrder": [
+      "qwen-code",
+      "gemini",
+      "codex"
+    ],
+    "perModeOverride": {
+      "test": [
+        "codex",
+        "gemini"
+      ],
+      "explain": [
+        "gemini",
+        "qwen-code"
+      ],
+      "generate": [
+        "qwen-code",
+        "gemini"
+      ],
+      "edit": [
+        "codex",
+        "gemini"
+      ]
+    }
+  },
+  "providers": {
+    "qwen-code": {
+      "binary": "qwen",
+      "args": [],
+      "jsonMode": "flag",
+      "jsonFlag": "--json",
+      "streamingMode": "jsonl",
+      "capabilities": [
+        "generate",
+        "edit",
+        "explain",
+        "test"
+      ]
+    },
+    "gemini": {
+      "binary": "gemini",
+      "args": [
+        "--output-format",
+        "json"
+      ],
+      "jsonMode": "none",
+      "streamingMode": "jsonl",
+      "capabilities": [
+        "generate",
+        "edit",
+        "explain",
+        "test"
+      ]
+    },
+    "codex": {
+      "binary": "cdx",
+      "args": [],
+      "jsonMode": "none",
+      "streamingMode": "line",
+      "capabilities": [
+        "generate",
+        "edit",
+        "test"
+      ]
+    }
+  },
+  "credits": {
+    "providers": {
+      "qwen-code": {
+        "dailyRequestLimit": 2000,
+        "resetHourUtc": 0
+      },
+      "gemini": {
+        "dailyRequestLimit": 5000,
+        "resetHourUtc": 0
+      },
+      "codex": {
+        "plan": "chatgpt_plus"
+      }
+    }
+  }
+}

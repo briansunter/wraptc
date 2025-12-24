@@ -1,0 +1,27 @@
+{
+  "name": "wrap-terminalcoder",
+  "version": "0.1.0",
+  "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "bun run --cwd packages/core build && bun run --cwd packages/cli build && bun run --cwd packages/mcp-server build",
+    "dev": "bun run --cwd packages/cli dev",
+    "test": "bun test",
+    "test:coverage": "bun test --coverage",
+    "test:coverage:html": "bun test --coverage && bun coverage:html",
+    "test:watch": "bun test --watch",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "coverage:report": "bun test --coverage && nyc report --reporter=text --reporter=html --reporter=lcov",
+    "coverage:check": "bun test --coverage && nyc check-coverage --lines 95 --functions 95 --branches 95"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.8.0",
+    "@istanbuljs/nyc-config-typescript": "^1.0.2",
+    "@types/bun": "latest",
+    "nyc": "^17.1.0"
+  },
+  "packageManager": "bun@1.1.0"
+}
