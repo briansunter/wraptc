@@ -1,4 +1,4 @@
-import { describe, test, expect, beforeAll, afterAll } from "bun:test";
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { WrapTerminalCoder } from "../../wrap-terminalcoder";
 
 // Create isolated test environment to prevent file system conflicts
@@ -82,18 +82,22 @@ describe("WrapTerminalCoder", () => {
       }
     });
 
-    test("route should handle basic request", async () => {
-      // This will fail because no actual provider binaries exist
-      // but we can test that it properly attempts to route
+    test("route should throw when no providers available", async () => {
+      // This test verifies that routing properly errors when no provider can be found
+      // Since real providers exist on this system, we test error handling by
+      // requesting a provider that doesn't exist
       const request = {
         prompt: "Test prompt",
         mode: "generate" as const,
+        provider: "nonexistent-provider-xyz-999",
       };
 
       try {
         await wtc.route(request);
+        // Should not reach here
+        expect(true).toBe(false);
       } catch (error) {
-        // Expected - no provider binaries available
+        // Expected - provider not found
         expect(error).toBeDefined();
       }
     });
@@ -103,16 +107,19 @@ describe("WrapTerminalCoder", () => {
         prompt: "Test prompt",
         mode: "generate" as const,
         stream: true,
+        provider: "nonexistent-provider-xyz-999",
       };
 
       const generator = wtc.routeStream(request);
       expect(generator[Symbol.asyncIterator]).toBeDefined();
 
-      // Consume generator (will error due to no providers)
+      // Consume generator (will error due to no provider)
       try {
-        for await (const event of generator) {
+        for await (const _event of generator) {
           // Won't reach here
         }
+        // Should not reach here
+        expect(true).toBe(false);
       } catch (error) {
         // Expected
         expect(error).toBeDefined();

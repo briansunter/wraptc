@@ -1,9 +1,9 @@
-import { describe, test, expect } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import {
   DEFAULT_ERROR_PATTERNS,
   classifyErrorDefault,
-  mergeErrorPatterns,
   createErrorClassifier,
+  mergeErrorPatterns,
 } from "../../error-patterns";
 
 describe("error-patterns", () => {
@@ -26,7 +26,9 @@ describe("error-patterns", () => {
 
       for (const kind of expectedKinds) {
         expect(DEFAULT_ERROR_PATTERNS).toHaveProperty(kind);
-        expect(Array.isArray(DEFAULT_ERROR_PATTERNS[kind as keyof typeof DEFAULT_ERROR_PATTERNS])).toBe(true);
+        expect(
+          Array.isArray(DEFAULT_ERROR_PATTERNS[kind as keyof typeof DEFAULT_ERROR_PATTERNS]),
+        ).toBe(true);
       }
     });
 

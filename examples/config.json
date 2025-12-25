@@ -1,27 +1,11 @@
 {
   "routing": {
-    "defaultOrder": [
-      "qwen-code",
-      "gemini",
-      "codex"
-    ],
+    "defaultOrder": ["qwen-code", "gemini", "codex"],
     "perModeOverride": {
-      "test": [
-        "codex",
-        "gemini"
-      ],
-      "explain": [
-        "gemini",
-        "qwen-code"
-      ],
-      "generate": [
-        "qwen-code",
-        "gemini"
-      ],
-      "edit": [
-        "codex",
-        "gemini"
-      ]
+      "test": ["codex", "gemini"],
+      "explain": ["gemini", "qwen-code"],
+      "generate": ["qwen-code", "gemini"],
+      "edit": ["codex", "gemini"]
     }
   },
   "providers": {
@@ -31,38 +15,21 @@
       "jsonMode": "flag",
       "jsonFlag": "--json",
       "streamingMode": "jsonl",
-      "capabilities": [
-        "generate",
-        "edit",
-        "explain",
-        "test"
-      ]
+      "capabilities": ["generate", "edit", "explain", "test"]
     },
     "gemini": {
       "binary": "gemini",
-      "args": [
-        "--output-format",
-        "json"
-      ],
+      "args": ["--output-format", "json"],
       "jsonMode": "none",
       "streamingMode": "jsonl",
-      "capabilities": [
-        "generate",
-        "edit",
-        "explain",
-        "test"
-      ]
+      "capabilities": ["generate", "edit", "explain", "test"]
     },
     "codex": {
       "binary": "cdx",
       "args": [],
       "jsonMode": "none",
       "streamingMode": "line",
-      "capabilities": [
-        "generate",
-        "edit",
-        "test"
-      ]
+      "capabilities": ["generate", "edit", "test"]
     }
   },
   "credits": {

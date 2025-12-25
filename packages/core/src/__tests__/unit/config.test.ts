@@ -1,7 +1,7 @@
-import { describe, test, expect, beforeEach, afterEach } from "bun:test";
-import { ConfigLoader, addCLIConfigOverrides } from "../../config";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { mkdir, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { mkdir, writeFile, rm } from "node:fs/promises";
+import { ConfigLoader, addCLIConfigOverrides } from "../../config";
 
 // Mock commander
 class MockCommand {

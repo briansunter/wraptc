@@ -46,7 +46,7 @@ export class MemoryMonitor {
   /**
    * Check if memory usage is within acceptable limits
    */
-  checkMemoryLimit(threshold: number = 0.85): boolean {
+  checkMemoryLimit(threshold = 0.85): boolean {
     const usage = process.memoryUsage();
     const heapUsedPercent = usage.heapUsed / usage.heapTotal;
     return heapUsedPercent < threshold;
@@ -71,9 +71,9 @@ export class MemoryMonitor {
   /**
    * Start periodic memory monitoring
    */
-  startMonitoring(intervalMs: number = 30000, logLevel: 'info' | 'warn' | 'error' = 'info'): void {
+  startMonitoring(intervalMs = 30000, logLevel: "info" | "warn" | "error" = "info"): void {
     if (this.isMonitoring) {
-      console.log(`[MemoryMonitor] Already monitoring memory usage`);
+      console.log("[MemoryMonitor] Already monitoring memory usage");
       return;
     }
 
@@ -84,11 +84,11 @@ export class MemoryMonitor {
 
       if (usagePercent >= this.thresholds.critical * 100) {
         console.error(`[MemoryMonitor] CRITICAL: ${this.formatMemoryStats(stats)}`);
-        this.triggerMemoryAlert('critical', stats);
+        this.triggerMemoryAlert("critical", stats);
       } else if (usagePercent >= this.thresholds.warning * 100) {
         console.warn(`[MemoryMonitor] WARNING: ${this.formatMemoryStats(stats)}`);
-        this.triggerMemoryAlert('warning', stats);
-      } else if (logLevel === 'info') {
+        this.triggerMemoryAlert("warning", stats);
+      } else if (logLevel === "info") {
         console.log(`[MemoryMonitor] ${this.formatMemoryStats(stats)}`);
       }
     }, intervalMs);
@@ -105,7 +105,7 @@ export class MemoryMonitor {
       this.intervalId = null;
     }
     this.isMonitoring = false;
-    console.log(`[MemoryMonitor] Stopped monitoring`);
+    console.log("[MemoryMonitor] Stopped monitoring");
   }
 
   /**
@@ -121,9 +121,9 @@ export class MemoryMonitor {
   forceGC(): void {
     if (global.gc) {
       global.gc();
-      console.log(`[MemoryMonitor] Garbage collection triggered`);
+      console.log("[MemoryMonitor] Garbage collection triggered");
     } else {
-      console.log(`[MemoryMonitor] Garbage collection not available (run with --expose-gc flag)`);
+      console.log("[MemoryMonitor] Garbage collection not available (run with --expose-gc flag)");
     }
   }
 
@@ -132,19 +132,19 @@ export class MemoryMonitor {
    */
   logMemoryReport(): void {
     const stats = this.getMemoryStats();
-    console.log(`[MemoryMonitor] === MEMORY REPORT ===`);
+    console.log("[MemoryMonitor] === MEMORY REPORT ===");
     console.log(`Heap Used: ${stats.heapUsed}MB`);
     console.log(`Heap Total: ${stats.heapTotal}MB`);
     console.log(`RSS: ${stats.rss}MB`);
     console.log(`External: ${stats.external}MB`);
     console.log(`Array Buffers: ${stats.arrayBuffers}MB`);
     console.log(`Usage: ${this.getMemoryUsagePercent()}%`);
-    console.log(`[MemoryMonitor] ====================`);
+    console.log("[MemoryMonitor] ====================");
   }
 
-  private triggerMemoryAlert(level: 'warning' | 'critical', stats: MemoryStats): void {
+  private triggerMemoryAlert(level: "warning" | "critical", stats: MemoryStats): void {
     // Emit event or call alerting system
-    if (level === 'critical') {
+    if (level === "critical") {
       console.error(`[MemoryMonitor] Memory usage critical! Consider:
         1. Restarting the application
         2. Reducing concurrent requests
@@ -158,14 +158,14 @@ export class MemoryMonitor {
 export const memoryMonitor = MemoryMonitor.getInstance();
 
 // Helper function to format bytes
-export function formatBytes(bytes: number, decimals: number = 2): string {
-  if (bytes === 0) return '0 Bytes';
+export function formatBytes(bytes: number, decimals = 2): string {
+  if (bytes === 0) return "0 Bytes";
 
   const k = 1024;
   const dm = decimals < 0 ? 0 : decimals;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+  const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
 
   const i = Math.floor(Math.log(bytes) / Math.log(k));
 
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+  return `${Number.parseFloat((bytes / k ** i).toFixed(dm))} ${sizes[i]}`;
 }

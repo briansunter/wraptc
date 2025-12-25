@@ -1,23 +1,15 @@
 {
   "routing": {
-    "defaultOrder": [
-      "user-provider",
-      "system-provider"
-    ]
+    "defaultOrder": ["user-provider", "system-provider"]
   },
   "providers": {
     "user-provider": {
       "binary": "/usr/local/bin/user-provider",
-      "args": [
-        "--user-flag"
-      ],
+      "args": ["--user-flag"],
       "jsonMode": "flag",
       "jsonFlag": "--json",
       "streamingMode": "jsonl",
-      "capabilities": [
-        "generate",
-        "edit"
-      ]
+      "capabilities": ["generate", "edit"]
     }
   }
 }

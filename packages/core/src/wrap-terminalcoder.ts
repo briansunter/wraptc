@@ -1,14 +1,14 @@
 import { ConfigLoader } from "./config";
-import { StateManager } from "./state";
-import { Router } from "./router";
-import { GeminiProvider } from "./providers/gemini";
-import { QwenCodeProvider } from "./providers/qwen-code";
-import { CodexProvider } from "./providers/codex";
-import { OpenCodeProvider } from "./providers/opencode";
-import { CustomProvider } from "./providers/custom";
 import { ProviderFactory, RequestDeduplicator } from "./provider-factory";
-import type { CodingRequest, CodingResponse, CodingEvent, Config } from "./types";
+import { CodexProvider } from "./providers/codex";
+import { CustomProvider } from "./providers/custom";
+import { GeminiProvider } from "./providers/gemini";
 import type { Provider } from "./providers/index";
+import { OpenCodeProvider } from "./providers/opencode";
+import { QwenCodeProvider } from "./providers/qwen-code";
+import { Router } from "./router";
+import { StateManager } from "./state";
+import type { CodingEvent, CodingRequest, CodingResponse, Config } from "./types";
 
 export interface WrapTerminalCoderConfig {
   configPath?: string;
@@ -89,7 +89,7 @@ export class WrapTerminalCoder {
       stateManager,
       router,
       providerFactory,
-      deduplicator
+      deduplicator,
     );
   }
 

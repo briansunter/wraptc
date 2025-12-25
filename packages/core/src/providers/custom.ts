@@ -1,3 +1,4 @@
+import { classifyErrorDefault } from "../error-patterns";
 import type {
   CodingEvent,
   CodingRequest,
@@ -17,8 +18,11 @@ export class CustomProvider extends BaseProvider {
 
   async runOnce(
     req: CodingRequest,
-    opts: ProviderInvokeOptions
-  ): Promise<{ text: string; usage?: { inputTokens?: number; outputTokens?: number; totalTokens?: number } }> {
+    opts: ProviderInvokeOptions,
+  ): Promise<{
+    text: string;
+    usage?: { inputTokens?: number; outputTokens?: number; totalTokens?: number };
+  }> {
     const args = this.buildArgs(req, opts);
     const needsStdin = !this.config.argsTemplate || !args.some((arg) => arg.includes(req.prompt));
 
@@ -105,15 +109,14 @@ export class CustomProvider extends BaseProvider {
     throw new Error(`${this.displayName} CLI failed with code ${exitCode}: ${stderr}`);
   }
 
-  async *runStream(
-    req: CodingRequest,
-    opts: ProviderInvokeOptions
-  ): AsyncGenerator<CodingEvent> {
+  async *runStream(req: CodingRequest, opts: ProviderInvokeOptions): AsyncGenerator<CodingEvent> {
     const requestId = crypto.randomUUID();
     yield { type: "start", provider: this.id, requestId };
 
     const args = this.buildArgs(req, opts);
-    const needsStdin = !this.config.argsTemplate || !this.config.argsTemplate.some((arg) => arg.includes("{{prompt}}"));
+    const needsStdin =
+      !this.config.argsTemplate ||
+      !this.config.argsTemplate.some((arg) => arg.includes("{{prompt}}"));
 
     // Use Bun.spawn() for streaming
     const proc = Bun.spawn([this.config.binary, ...args], {
@@ -165,7 +168,7 @@ export class CustomProvider extends BaseProvider {
             const lines = text.split("\n");
             for (const line of lines) {
               if (line.trim()) {
-                yield { type: "text_delta", text: line + "\n" };
+                yield { type: "text_delta", text: `${line}\n` };
               }
             }
           } else {
@@ -216,7 +219,8 @@ export class CustomProvider extends BaseProvider {
     const stderr = stderrChunks.join("");
 
     if (exitCode === 0) {
-      const result = this.config.jsonMode !== "none" ? this.parseJsonOutput(fullText) : { text: fullText };
+      const result =
+        this.config.jsonMode !== "none" ? this.parseJsonOutput(fullText) : { text: fullText };
       yield { type: "complete", provider: this.id, text: result.text, usage: result.usage };
     } else {
       yield {
@@ -229,69 +233,8 @@ export class CustomProvider extends BaseProvider {
   }
 
   classifyError(error: ProviderErrorContext): ProviderErrorKind {
-    const stderr = error.stderr || "";
-    const stdout = error.stdout || "";
-    const combined = (stderr + stdout).toLowerCase();
-    const exitCode = error.exitCode;
-    const httpStatus = error.httpStatus;
-
-    // HTTP status code based classification
-    if (httpStatus) {
-      if (httpStatus === 401) return "UNAUTHORIZED";
-      if (httpStatus === 403) return "FORBIDDEN";
-      if (httpStatus === 404) return "NOT_FOUND";
-      if (httpStatus === 429) return "RATE_LIMIT";
-      if (httpStatus >= 500) return "INTERNAL";
-    }
-
-    // Check for credit/rate limit errors
-    if (combined.includes("quota") || combined.includes("credits") || combined.includes("limit exceeded")) {
-      return "OUT_OF_CREDITS";
-    }
-    if (combined.includes("rate limit") || combined.includes("429") || combined.includes("too many requests")) {
-      return "RATE_LIMIT";
-    }
-
-    // Authentication errors
-    if (combined.includes("401") || combined.includes("unauthorized") || combined.includes("api key")) {
-      return "UNAUTHORIZED";
-    }
-    if (combined.includes("403") || combined.includes("forbidden") || combined.includes("permission")) {
-      return "FORBIDDEN";
-    }
-
-    // Content/context errors
-    if (combined.includes("context length") || combined.includes("too long") || combined.includes("max.*token")) {
-      return "CONTEXT_LENGTH";
-    }
-    if (combined.includes("content filter") || combined.includes("safety") || combined.includes("blocked")) {
-      return "CONTENT_FILTER";
-    }
-
-    // Timeout errors
-    if (combined.includes("timeout") || combined.includes("timed out") || combined.includes("deadline")) {
-      return "TIMEOUT";
-    }
-
-    // Bad request
-    if (combined.includes("400") || exitCode === 2 || combined.includes("invalid")) {
-      return "BAD_REQUEST";
-    }
-    if (combined.includes("404") || combined.includes("not found")) {
-      return "NOT_FOUND";
-    }
-
-    // Server errors
-    if (combined.includes("500") || combined.includes("internal error") || combined.includes("server error")) {
-      return "INTERNAL";
-    }
-
-    // Network or transient errors
-    if (combined.includes("network") || combined.includes("connection") || combined.includes("econnrefused")) {
-      return "TRANSIENT";
-    }
-
-    return "UNKNOWN";
+    // Use the shared error classifier from error-patterns.ts
+    return classifyErrorDefault(error.stderr, error.stdout, error.exitCode, error.httpStatus);
   }
 
   protected buildArgs(req: CodingRequest, opts: ProviderInvokeOptions): string[] {

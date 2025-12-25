@@ -1,4 +1,5 @@
 import { join } from "node:path";
+import { DEFAULT_ERROR_PATTERNS, classifyErrorDefault } from "../error-patterns";
 import type {
   CodingEvent,
   CodingRequest,
@@ -10,7 +11,6 @@ import type {
   ProviderInvokeOptions,
   TokenUsage,
 } from "../types";
-import { DEFAULT_ERROR_PATTERNS } from "../error-patterns";
 
 // Re-export ProviderInvokeOptions for convenience
 export type { ProviderInvokeOptions };
@@ -24,13 +24,13 @@ export interface Provider {
 
   runOnce(
     req: CodingRequest,
-    opts: ProviderInvokeOptions
-  ): Promise<{ text: string; usage?: { inputTokens?: number; outputTokens?: number; totalTokens?: number } }>;
+    opts: ProviderInvokeOptions,
+  ): Promise<{
+    text: string;
+    usage?: { inputTokens?: number; outputTokens?: number; totalTokens?: number };
+  }>;
 
-  runStream(
-    req: CodingRequest,
-    opts: ProviderInvokeOptions
-  ): AsyncGenerator<CodingEvent>;
+  runStream(req: CodingRequest, opts: ProviderInvokeOptions): AsyncGenerator<CodingEvent>;
 
   classifyError(error: ProviderErrorContext): ProviderErrorKind;
 
@@ -58,13 +58,10 @@ export abstract class BaseProvider implements Provider {
   // Subclasses can override for custom behavior
   abstract runOnce(
     req: CodingRequest,
-    opts: ProviderInvokeOptions
+    opts: ProviderInvokeOptions,
   ): Promise<{ text: string; usage?: TokenUsage }>;
 
-  abstract runStream(
-    req: CodingRequest,
-    opts: ProviderInvokeOptions
-  ): AsyncGenerator<CodingEvent>;
+  abstract runStream(req: CodingRequest, opts: ProviderInvokeOptions): AsyncGenerator<CodingEvent>;
 
   abstract classifyError(error: ProviderErrorContext): ProviderErrorKind;
 
@@ -101,7 +98,10 @@ export abstract class BaseProvider implements Provider {
     return args;
   }
 
-  protected parseJsonOutput(stdout: string): { text: string; usage?: { inputTokens?: number; outputTokens?: number; totalTokens?: number } } {
+  protected parseJsonOutput(stdout: string): {
+    text: string;
+    usage?: { inputTokens?: number; outputTokens?: number; totalTokens?: number };
+  } {
     try {
       const parsed = JSON.parse(stdout);
       return {
@@ -124,11 +124,26 @@ export abstract class ProcessProvider extends BaseProvider {
     this.binaryPath = config.binary;
   }
 
+  /**
+   * Check if the binary exists before attempting to spawn a process.
+   * This prevents hanging when the binary is not found.
+   */
+  protected async checkBinaryExists(): Promise<void> {
+    try {
+      await Bun.$`which ${this.binaryPath}`.quiet();
+    } catch {
+      throw new Error(`Binary not found: ${this.binaryPath}`);
+    }
+  }
+
   protected async executeProcess(
     args: string[],
     input?: string,
-    opts?: ProviderInvokeOptions
+    opts?: ProviderInvokeOptions,
   ): Promise<{ stdout: string; stderr: string; exitCode: number | null }> {
+    // Check if binary exists first to avoid hanging on non-existent binaries
+    await this.checkBinaryExists();
+
     // Use Bun.spawn() for better performance
     const proc = Bun.spawn([this.binaryPath, ...args], {
       cwd: opts?.cwd,
@@ -209,8 +224,11 @@ export abstract class ProcessProvider extends BaseProvider {
   protected async *streamProcess(
     args: string[],
     input?: string,
-    opts?: ProviderInvokeOptions
+    opts?: ProviderInvokeOptions,
   ): AsyncGenerator<{ type: "stdout" | "stderr"; data: string }> {
+    // Check if binary exists first to avoid hanging on non-existent binaries
+    await this.checkBinaryExists();
+
     // Use Bun.spawn() for streaming
     const proc = Bun.spawn([this.binaryPath, ...args], {
       cwd: opts?.cwd,
@@ -277,7 +295,7 @@ export abstract class ProcessProvider extends BaseProvider {
    */
   async runOnce(
     req: CodingRequest,
-    opts: ProviderInvokeOptions
+    opts: ProviderInvokeOptions,
   ): Promise<{ text: string; usage?: TokenUsage }> {
     const args = this.buildArgs(req, opts);
     const input = this.getStdinInput(req);
@@ -294,10 +312,7 @@ export abstract class ProcessProvider extends BaseProvider {
    * Default runStream implementation.
    * Subclasses can override for custom behavior.
    */
-  async *runStream(
-    req: CodingRequest,
-    opts: ProviderInvokeOptions
-  ): AsyncGenerator<CodingEvent> {
+  async *runStream(req: CodingRequest, opts: ProviderInvokeOptions): AsyncGenerator<CodingEvent> {
     const requestId = crypto.randomUUID();
     yield { type: "start", provider: this.id, requestId };
 
@@ -339,19 +354,11 @@ export abstract class ProcessProvider extends BaseProvider {
   }
 
   /**
-   * Default error classification using DEFAULT_ERROR_PATTERNS.
+   * Default error classification using shared classifyErrorDefault.
    * Subclasses can override for provider-specific patterns.
    */
   classifyError(error: ProviderErrorContext): ProviderErrorKind {
-    const combined = ((error.stderr || "") + (error.stdout || "")).toLowerCase();
-
-    for (const [kind, patterns] of Object.entries(DEFAULT_ERROR_PATTERNS)) {
-      if (patterns.some((p) => combined.includes(p.toLowerCase()))) {
-        return kind as ProviderErrorKind;
-      }
-    }
-
-    return "TRANSIENT";
+    return classifyErrorDefault(error.stderr, error.stdout, error.exitCode, error.httpStatus);
   }
 
   /**

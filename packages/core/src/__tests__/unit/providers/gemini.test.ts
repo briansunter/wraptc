@@ -1,4 +1,4 @@
-import { describe, test, expect, beforeEach, afterEach, mock, spyOn } from "bun:test";
+import { afterEach, beforeEach, describe, expect, mock, spyOn, test } from "bun:test";
 import { GeminiProvider } from "../../../providers/gemini";
 import type { CodingRequest, ProviderConfig } from "../../../types";
 
@@ -33,13 +33,13 @@ describe("GeminiProvider", () => {
     test("should set binary path from config", () => {
       const customBinaryConfig = { ...config, binary: "/custom/gemini" };
       const customProvider = new GeminiProvider(customBinaryConfig);
-      expect(customProvider["binaryPath"]).toBe("/custom/gemini");
+      expect(customProvider.binaryPath).toBe("/custom/gemini");
     });
 
     test("should set default binary if not provided", () => {
       const defaultConfig = { ...config, binary: "" };
       const defaultProvider = new GeminiProvider(defaultConfig);
-      expect(defaultProvider["binaryPath"]).toBe("gemini");
+      expect(defaultProvider.binaryPath).toBe("gemini");
     });
 
     test("should set streaming support based on config", () => {
@@ -62,7 +62,7 @@ describe("GeminiProvider", () => {
   describe("buildArgs", () => {
     test("should build args with JSON flag", () => {
       const req: CodingRequest = { prompt: "test prompt" };
-      const args = provider["buildArgs"](req, {});
+      const args = provider.buildArgs(req, {});
 
       expect(args).toContain("-o");
       expect(args).toContain("json");
@@ -73,7 +73,7 @@ describe("GeminiProvider", () => {
       const configWithArgs = { ...config, args: ["--verbose", "--model=gpt4"] };
       const providerWithArgs = new GeminiProvider(configWithArgs);
       const req: CodingRequest = { prompt: "test" };
-      const args = providerWithArgs["buildArgs"](req, {});
+      const args = providerWithArgs.buildArgs(req, {});
 
       expect(args).toContain("--verbose");
       expect(args).toContain("--model=gpt4");
@@ -83,7 +83,7 @@ describe("GeminiProvider", () => {
       const noJsonConfig = { ...config, jsonMode: "none" as const };
       const noJsonProvider = new GeminiProvider(noJsonConfig);
       const req: CodingRequest = { prompt: "test" };
-      const args = noJsonProvider["buildArgs"](req, {});
+      const args = noJsonProvider.buildArgs(req, {});
 
       expect(args).not.toContain("-o");
       expect(args).not.toContain("json");
@@ -92,7 +92,7 @@ describe("GeminiProvider", () => {
 
   describe("getStdinInput", () => {
     test("should return undefined for Gemini (uses positional args)", () => {
-      const result = provider["getStdinInput"]();
+      const result = provider.getStdinInput();
       expect(result).toBeUndefined();
     });
   });
@@ -114,12 +114,7 @@ describe("GeminiProvider", () => {
     });
 
     test("should classify RATE_LIMIT errors", () => {
-      const errors = [
-        "rate limit exceeded",
-        "Rate limit exceeded",
-        "429",
-        "too many requests",
-      ];
+      const errors = ["rate limit exceeded", "Rate limit exceeded", "429", "too many requests"];
 
       for (const error of errors) {
         const result = provider.classifyError({ stderr: error });
@@ -128,12 +123,7 @@ describe("GeminiProvider", () => {
     });
 
     test("should classify BAD_REQUEST errors", () => {
-      const errors = [
-        "400",
-        "Bad request",
-        "bad request",
-        "invalid request",
-      ];
+      const errors = ["400", "Bad request", "bad request", "invalid request"];
 
       for (const error of errors) {
         const result = provider.classifyError({ stderr: error });
@@ -142,12 +132,7 @@ describe("GeminiProvider", () => {
     });
 
     test("should classify UNAUTHORIZED errors", () => {
-      const errors = [
-        "401",
-        "unauthorized",
-        "invalid api key",
-        "authentication failed",
-      ];
+      const errors = ["401", "unauthorized", "invalid api key", "authentication failed"];
 
       for (const error of errors) {
         const result = provider.classifyError({ stderr: error });
@@ -156,11 +141,7 @@ describe("GeminiProvider", () => {
     });
 
     test("should classify TIMEOUT errors", () => {
-      const errors = [
-        "timeout",
-        "timed out",
-        "deadline exceeded",
-      ];
+      const errors = ["timeout", "timed out", "deadline exceeded"];
 
       for (const error of errors) {
         const result = provider.classifyError({ stderr: error });
@@ -169,12 +150,7 @@ describe("GeminiProvider", () => {
     });
 
     test("should classify INTERNAL errors", () => {
-      const errors = [
-        "500",
-        "Internal server error",
-        "internal error",
-        "server error",
-      ];
+      const errors = ["500", "Internal server error", "internal error", "server error"];
 
       for (const error of errors) {
         const result = provider.classifyError({ stderr: error });
@@ -243,26 +219,32 @@ describe("GeminiProvider", () => {
 
   describe("runOnce (integration)", () => {
     test("should throw when binary not found", async () => {
+      // Use a non-existent binary path
+      const nonExistentConfig = { ...config, binary: "/nonexistent/path/to/gemini-xyz-999" };
+      const nonExistentProvider = new GeminiProvider(nonExistentConfig);
       const req: CodingRequest = { prompt: "test" };
 
-      await expect(provider.runOnce(req, {})).rejects.toThrow();
+      await expect(nonExistentProvider.runOnce(req, {})).rejects.toThrow(/Binary not found/);
     });
   });
 
   describe("runStream (integration)", () => {
     test("should throw when binary not found", async () => {
+      // Use a non-existent binary path
+      const nonExistentConfig = { ...config, binary: "/nonexistent/path/to/gemini-xyz-999" };
+      const nonExistentProvider = new GeminiProvider(nonExistentConfig);
       const req: CodingRequest = { prompt: "test" };
 
-      const events: any[] = [];
       try {
-        for await (const event of provider.runStream(req, {})) {
-          events.push(event);
+        for await (const _event of nonExistentProvider.runStream(req, {})) {
+          // Should not get here
         }
         // If we get here without error, fail the test
         expect(true).toBe(false);
       } catch (error) {
         // Expected - binary not found
         expect(error).toBeDefined();
+        expect((error as Error).message).toMatch(/Binary not found/);
       }
     });
   });

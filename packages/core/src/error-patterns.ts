@@ -23,14 +23,7 @@ export const DEFAULT_ERROR_PATTERNS: Record<ProviderErrorKind, string[]> = {
     "credit limit",
     "you've exceeded your quota",
   ],
-  RATE_LIMIT: [
-    "rate limit",
-    "rate_limit",
-    "too many requests",
-    "429",
-    "throttle",
-    "slow down",
-  ],
+  RATE_LIMIT: ["rate limit", "rate_limit", "too many requests", "429", "throttle", "slow down"],
   BAD_REQUEST: [
     "bad request",
     "invalid request",
@@ -47,25 +40,9 @@ export const DEFAULT_ERROR_PATTERNS: Record<ProviderErrorKind, string[]> = {
     "api key missing",
     "401",
   ],
-  FORBIDDEN: [
-    "forbidden",
-    "permission denied",
-    "access denied",
-    "403",
-  ],
-  NOT_FOUND: [
-    "not found",
-    "404",
-    "no such file",
-    "command not found",
-    "model not found",
-  ],
-  TIMEOUT: [
-    "timeout",
-    "timed out",
-    "deadline exceeded",
-    "request timeout",
-  ],
+  FORBIDDEN: ["forbidden", "permission denied", "access denied", "403"],
+  NOT_FOUND: ["not found", "404", "no such file", "command not found", "model not found"],
+  TIMEOUT: ["timeout", "timed out", "deadline exceeded", "request timeout"],
   CONTEXT_LENGTH: [
     "context length",
     "too long",
@@ -74,21 +51,8 @@ export const DEFAULT_ERROR_PATTERNS: Record<ProviderErrorKind, string[]> = {
     "context too large",
     "input too long",
   ],
-  CONTENT_FILTER: [
-    "content filter",
-    "blocked",
-    "safety",
-    "moderation",
-    "policy violation",
-  ],
-  INTERNAL: [
-    "internal error",
-    "internal server error",
-    "server error",
-    "500",
-    "502",
-    "503",
-  ],
+  CONTENT_FILTER: ["content filter", "blocked", "safety", "moderation", "policy violation"],
+  INTERNAL: ["internal error", "internal server error", "server error", "500", "502", "503"],
   TRANSIENT: [
     "temporarily unavailable",
     "service unavailable",
@@ -106,10 +70,20 @@ export const DEFAULT_ERROR_PATTERNS: Record<ProviderErrorKind, string[]> = {
  * Classify an error based on the combined output using default patterns
  */
 export function classifyErrorDefault(
-  stderr: string = "",
-  stdout: string = "",
-  exitCode?: number | null
+  stderr = "",
+  stdout = "",
+  exitCode?: number | null,
+  httpStatus?: number,
 ): ProviderErrorKind {
+  // HTTP status code based classification takes priority
+  if (httpStatus) {
+    if (httpStatus === 401) return "UNAUTHORIZED";
+    if (httpStatus === 403) return "FORBIDDEN";
+    if (httpStatus === 404) return "NOT_FOUND";
+    if (httpStatus === 429) return "RATE_LIMIT";
+    if (httpStatus >= 500) return "INTERNAL";
+  }
+
   const combined = (stderr + stdout).toLowerCase();
 
   for (const [kind, patterns] of Object.entries(DEFAULT_ERROR_PATTERNS)) {
@@ -130,7 +104,7 @@ export function classifyErrorDefault(
  * Merge provider-specific patterns with default patterns
  */
 export function mergeErrorPatterns(
-  providerPatterns: Partial<Record<ProviderErrorKind, string[]>>
+  providerPatterns: Partial<Record<ProviderErrorKind, string[]>>,
 ): Record<ProviderErrorKind, string[]> {
   const merged = { ...DEFAULT_ERROR_PATTERNS };
 
@@ -150,7 +124,7 @@ export function mergeErrorPatterns(
  * Create a classifier function with merged patterns
  */
 export function createErrorClassifier(
-  providerPatterns: Partial<Record<ProviderErrorKind, string[]>> = {}
+  providerPatterns: Partial<Record<ProviderErrorKind, string[]>> = {},
 ): (stderr?: string, stdout?: string, exitCode?: number | null) => ProviderErrorKind {
   const patterns = mergeErrorPatterns(providerPatterns);
 

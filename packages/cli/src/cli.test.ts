@@ -1,4 +1,4 @@
-import { describe, test, expect, beforeEach, mock } from "bun:test";
+import { beforeEach, describe, expect, mock, test } from "bun:test";
 import { WrapTerminalCoder } from "@wrap-terminalcoder/core";
 import { ConfigLoader } from "@wrap-terminalcoder/core";
 import { StateManager } from "@wrap-terminalcoder/core";
@@ -46,7 +46,11 @@ mock.module("@wrap-terminalcoder/core", () => {
     })),
     StateManager: mock(() => ({
       initialize: mock(async () => {}),
-      getProviderState: mock(async () => ({ requestsToday: 0, outOfCreditsUntil: undefined, lastErrors: [] })),
+      getProviderState: mock(async () => ({
+        requestsToday: 0,
+        outOfCreditsUntil: undefined,
+        lastErrors: [],
+      })),
       recordSuccess: mock(async () => {}),
       recordError: mock(async () => {}),
     })),
@@ -164,7 +168,11 @@ describe("CLI Integration", () => {
 
     test("should record successful requests", async () => {
       // Override mock for this test to track state changes
-      const mockGetState = mock(async () => ({ requestsToday: 1, outOfCreditsUntil: undefined, lastErrors: [] }));
+      const mockGetState = mock(async () => ({
+        requestsToday: 1,
+        outOfCreditsUntil: undefined,
+        lastErrors: [],
+      }));
       const stateManager = new StateManager();
       stateManager.getProviderState = mockGetState;
 

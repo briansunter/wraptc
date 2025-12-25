@@ -1,11 +1,11 @@
+import type { Provider } from "./providers/index";
+import type { StateManager } from "./state";
 import type {
   CodingRequest,
   CodingResponse,
-  ProviderErrorKind,
   ProviderErrorContext,
+  ProviderErrorKind,
 } from "./types";
-import type { Provider } from "./providers/index";
-import type { StateManager } from "./state";
 import type { Config } from "./types";
 
 export interface RouterOptions {
@@ -52,7 +52,9 @@ export class Router {
     // Build candidate list
     const candidates = this.getCandidateProviders(req);
     if (candidates.length === 0) {
-      throw new Error("No available providers configured");
+      throw new Error(
+        "No providers configured. Add providers to your config or check your routing.defaultOrder setting.",
+      );
     }
 
     // Try each provider in order
@@ -107,8 +109,9 @@ export class Router {
         // Execute request
         const result = await provider.runOnce(req, opts);
 
-        // Update state on success
-        await this.stateManager.recordSuccess(providerId);
+        // Update state on success, including token usage
+        const tokensSaved = result.usage?.totalTokens ?? result.usage?.outputTokens ?? 0;
+        await this.stateManager.recordSuccess(providerId, tokensSaved);
 
         return {
           provider: providerId,
@@ -139,19 +142,29 @@ export class Router {
 
         // Errors that should fail immediately (user needs to fix request/config)
         if (errorKind === "BAD_REQUEST") {
-          throw new Error(`Bad request: ${err.message}`);
+          throw new Error(
+            `Bad request to ${providerId}: ${err.message}. Check your prompt and options.`,
+          );
         }
         if (errorKind === "UNAUTHORIZED") {
-          throw new Error(`Unauthorized: ${err.message}`);
+          throw new Error(
+            `Unauthorized for ${providerId}: ${err.message}. Check your API key or authentication.`,
+          );
         }
         if (errorKind === "FORBIDDEN") {
-          throw new Error(`Forbidden: ${err.message}`);
+          throw new Error(
+            `Access denied for ${providerId}: ${err.message}. Check your permissions or subscription.`,
+          );
         }
         if (errorKind === "CONTEXT_LENGTH") {
-          throw new Error(`Context too long: ${err.message}`);
+          throw new Error(
+            `Context too long for ${providerId}: ${err.message}. Try a shorter prompt or fewer files.`,
+          );
         }
         if (errorKind === "CONTENT_FILTER") {
-          throw new Error(`Content filtered: ${err.message}`);
+          throw new Error(
+            `Content filtered by ${providerId}: ${err.message}. Rephrase your prompt to avoid policy violations.`,
+          );
         }
 
         // For other errors, log and continue to next provider
@@ -163,7 +176,9 @@ export class Router {
     const errorSummary = errors
       .map((e) => `${e.provider} (${e.kind}): ${e.error.message}`)
       .join("; ");
-    throw new Error(`All providers failed: ${errorSummary}`);
+    throw new Error(
+      `All ${errors.length} providers failed. Tried: ${candidates.join(", ")}. Details: ${errorSummary}`,
+    );
   }
 
   async *routeStream(
@@ -175,7 +190,9 @@ export class Router {
     // Build candidate list
     const candidates = this.getCandidateProviders(req);
     if (candidates.length === 0) {
-      throw new Error("No available providers configured");
+      throw new Error(
+        "No providers configured. Add providers to your config or check your routing.defaultOrder setting.",
+      );
     }
 
     // Try each provider in order
@@ -226,12 +243,14 @@ export class Router {
       }
 
       try {
-        let fullText = "";
+        const fullText = "";
 
         // Execute streaming request
         for await (const event of provider.runStream(req, opts)) {
           if (event.type === "complete") {
-            await this.stateManager.recordSuccess(providerId);
+            // Record success with token usage
+            const tokensSaved = event.usage?.totalTokens ?? event.usage?.outputTokens ?? 0;
+            await this.stateManager.recordSuccess(providerId, tokensSaved);
             yield {
               provider: providerId,
               text: event.text,
@@ -262,19 +281,29 @@ export class Router {
 
         // Errors that should fail immediately (user needs to fix request/config)
         if (errorKind === "BAD_REQUEST") {
-          throw new Error(`Bad request: ${err.message}`);
+          throw new Error(
+            `Bad request to ${providerId}: ${err.message}. Check your prompt and options.`,
+          );
         }
         if (errorKind === "UNAUTHORIZED") {
-          throw new Error(`Unauthorized: ${err.message}`);
+          throw new Error(
+            `Unauthorized for ${providerId}: ${err.message}. Check your API key or authentication.`,
+          );
         }
         if (errorKind === "FORBIDDEN") {
-          throw new Error(`Forbidden: ${err.message}`);
+          throw new Error(
+            `Access denied for ${providerId}: ${err.message}. Check your permissions or subscription.`,
+          );
         }
         if (errorKind === "CONTEXT_LENGTH") {
-          throw new Error(`Context too long: ${err.message}`);
+          throw new Error(
+            `Context too long for ${providerId}: ${err.message}. Try a shorter prompt or fewer files.`,
+          );
         }
         if (errorKind === "CONTENT_FILTER") {
-          throw new Error(`Content filtered: ${err.message}`);
+          throw new Error(
+            `Content filtered by ${providerId}: ${err.message}. Rephrase your prompt to avoid policy violations.`,
+          );
         }
 
         errors.push({ provider: providerId, error: err, kind: errorKind });
@@ -285,7 +314,9 @@ export class Router {
     const errorSummary = errors
       .map((e) => `${e.provider} (${e.kind}): ${e.error.message}`)
       .join("; ");
-    throw new Error(`All providers failed: ${errorSummary}`);
+    throw new Error(
+      `All ${errors.length} providers failed. Tried: ${candidates.join(", ")}. Details: ${errorSummary}`,
+    );
   }
 
   private getCandidateProviders(req: CodingRequest): string[] {

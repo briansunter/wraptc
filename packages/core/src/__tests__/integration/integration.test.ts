@@ -1,10 +1,10 @@
-import { describe, test, expect, mock } from "bun:test";
+import { describe, expect, mock, test } from "bun:test";
+import { mkdir, unlink, writeFile } from "node:fs/promises";
+import { join } from "node:path";
+import { ConfigLoader } from "../../config";
 import { Router } from "../../router";
 import { StateManager } from "../../state";
-import { ConfigLoader } from "../../config";
 import type { CodingRequest } from "../../types";
-import { mkdir, writeFile, unlink } from "node:fs/promises";
-import { join } from "node:path";
 
 // Mock Provider for testing
 class MockProvider {
@@ -15,7 +15,7 @@ class MockProvider {
   readonly capabilities?: string[] = ["generate", "edit", "explain", "test"];
 
   private responseText: string;
-  private shouldFail: boolean = false;
+  private shouldFail = false;
 
   constructor(id: string, displayName: string, responseText: string) {
     this.id = id;
@@ -183,7 +183,7 @@ describe("Integration Tests", () => {
     const stateManager1 = new StateManager({ statePath });
     await stateManager1.initialize();
     await stateManager1.recordSuccess("test-provider");
-    await stateManager1["save"](); // Force immediate save
+    await stateManager1.save(); // Force immediate save
 
     // Second session - load state
     const stateManager2 = new StateManager({ statePath });

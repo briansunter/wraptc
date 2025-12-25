@@ -1,4 +1,4 @@
-import { describe, test, expect, beforeEach, afterEach } from "bun:test";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { CodexProvider } from "../../../providers/codex";
 import type { CodingRequest, ProviderConfig } from "../../../types";
 
@@ -26,13 +26,13 @@ describe("CodexProvider", () => {
     test("should set binary path from config", () => {
       const customConfig = { ...config, binary: "/custom/codex" };
       const customProvider = new CodexProvider(customConfig);
-      expect(customProvider["binaryPath"]).toBe("/custom/codex");
+      expect(customProvider.binaryPath).toBe("/custom/codex");
     });
 
     test("should set default binary if not provided", () => {
       const defaultConfig = { ...config, binary: "" };
       const defaultProvider = new CodexProvider(defaultConfig);
-      expect(defaultProvider["binaryPath"]).toBe("codex");
+      expect(defaultProvider.binaryPath).toBe("codex");
     });
 
     test("should set streaming support based on config", () => {
@@ -47,7 +47,7 @@ describe("CodexProvider", () => {
   describe("buildArgs", () => {
     test("should use exec subcommand with prompt", () => {
       const req: CodingRequest = { prompt: "Write hello world" };
-      const args = provider["buildArgs"](req, {});
+      const args = provider.buildArgs(req, {});
 
       expect(args[0]).toBe("exec");
       expect(args).toContain("Write hello world");
@@ -57,7 +57,7 @@ describe("CodexProvider", () => {
       const configWithArgs = { ...config, args: ["--model", "gpt-4"] };
       const providerWithArgs = new CodexProvider(configWithArgs);
       const req: CodingRequest = { prompt: "test" };
-      const args = providerWithArgs["buildArgs"](req, {});
+      const args = providerWithArgs.buildArgs(req, {});
 
       expect(args).toContain("--model");
       expect(args).toContain("gpt-4");
@@ -67,7 +67,7 @@ describe("CodexProvider", () => {
       const configWithArgs = { ...config, args: ["--verbose"] };
       const providerWithArgs = new CodexProvider(configWithArgs);
       const req: CodingRequest = { prompt: "test prompt" };
-      const args = providerWithArgs["buildArgs"](req, {});
+      const args = providerWithArgs.buildArgs(req, {});
 
       // exec, --verbose, test prompt
       expect(args[0]).toBe("exec");
@@ -78,7 +78,7 @@ describe("CodexProvider", () => {
 
   describe("getStdinInput", () => {
     test("should return undefined for Codex (uses positional args)", () => {
-      const result = provider["getStdinInput"]();
+      const result = provider.getStdinInput();
       expect(result).toBeUndefined();
     });
   });
@@ -144,22 +144,29 @@ describe("CodexProvider", () => {
 
   describe("runOnce (integration)", () => {
     test("should throw when binary not found", async () => {
+      // Use a non-existent binary path
+      const nonExistentConfig = { ...config, binary: "/nonexistent/path/to/codex-xyz-999" };
+      const nonExistentProvider = new CodexProvider(nonExistentConfig);
       const req: CodingRequest = { prompt: "test" };
-      await expect(provider.runOnce(req, {})).rejects.toThrow();
+      await expect(nonExistentProvider.runOnce(req, {})).rejects.toThrow(/Binary not found/);
     });
   });
 
   describe("runStream (integration)", () => {
     test("should throw when binary not found", async () => {
+      // Use a non-existent binary path
+      const nonExistentConfig = { ...config, binary: "/nonexistent/path/to/codex-xyz-999" };
+      const nonExistentProvider = new CodexProvider(nonExistentConfig);
       const req: CodingRequest = { prompt: "test" };
 
       try {
-        for await (const event of provider.runStream(req, {})) {
+        for await (const _event of nonExistentProvider.runStream(req, {})) {
           // Should not get here
         }
         expect(true).toBe(false); // Fail if we get here
       } catch (error) {
         expect(error).toBeDefined();
+        expect((error as Error).message).toMatch(/Binary not found/);
       }
     });
   });

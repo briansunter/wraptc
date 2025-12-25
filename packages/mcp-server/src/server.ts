@@ -2,13 +2,10 @@
 
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import {
-  CallToolRequestSchema,
-  ListToolsRequestSchema,
-} from "@modelcontextprotocol/sdk/types.js";
-import { WrapTerminalCoder, CodingRequestSchema } from "@wrap-terminalcoder/core";
-import { z } from "zod";
+import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
+import { CodingRequestSchema, WrapTerminalCoder } from "@wrap-terminalcoder/core";
 import type { CodingRequest } from "@wrap-terminalcoder/core";
+import { z } from "zod";
 
 // Tool schemas
 const RunCodingTaskSchema = z.object({
@@ -41,7 +38,7 @@ class WrapTerminalCoderMCPServer {
         capabilities: {
           tools: {},
         },
-      }
+      },
     );
 
     this.setupToolHandlers();
@@ -180,7 +177,7 @@ class WrapTerminalCoderMCPServer {
                       meta: response.meta,
                     },
                     null,
-                    2
+                    2,
                   ),
                 },
               ],
@@ -223,12 +220,13 @@ class WrapTerminalCoderMCPServer {
                   text: JSON.stringify(
                     {
                       request: codingRequest,
-                      availableProviders: providers.filter((p: any) =>
-                        p.outOfCreditsUntil ? new Date(p.outOfCreditsUntil) <= new Date() : true
+                      availableProviders: providers.filter(
+                        (p: { outOfCreditsUntil?: string | number | null }) =>
+                          p.outOfCreditsUntil ? new Date(p.outOfCreditsUntil) <= new Date() : true,
                       ),
                     },
                     null,
-                    2
+                    2,
                   ),
                 },
               ],

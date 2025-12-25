@@ -1,8 +1,6 @@
 {
   "routing": {
-    "defaultOrder": [
-      "system-provider"
-    ]
+    "defaultOrder": ["system-provider"]
   },
   "providers": {
     "system-provider": {
@@ -10,9 +8,7 @@
       "args": [],
       "jsonMode": "none",
       "streamingMode": "line",
-      "capabilities": [
-        "generate"
-      ]
+      "capabilities": ["generate"]
     }
   }
 }

@@ -1,9 +1,9 @@
 #!/usr/bin/env bun
 
-import { Command } from "commander";
 import { WrapTerminalCoder } from "@wrap-terminalcoder/core";
 import { CodingRequestSchema } from "@wrap-terminalcoder/core";
 import type { CodingRequest } from "@wrap-terminalcoder/core";
+import { Command } from "commander";
 
 const program = new Command();
 
@@ -22,13 +22,13 @@ program
   .option("--mode <mode>", "Task type: generate, edit, explain, test", "generate")
   .option("--lang <language>", "Language hint (js, ts, py, etc.)")
   .option("-f, --file <files...>", "Include file(s) for context")
-  .option("-t, --temperature <temp>", "Creativity level (0-2)", parseFloat)
+  .option("-t, --temperature <temp>", "Creativity level (0-2)", Number.parseFloat)
   .option("-s, --stream", "Stream responses in real-time")
-  .option("-o, --output <format>", "Output format: json, text", "json")
+  .option("-o, --output <format>", "Output format: text, json", "text")
   .option("-d, --dry-run", "Show which provider will be used")
   .option("-c, --config <path>", "Custom config file path")
-  .option("--timeout <seconds>", "Request timeout in seconds", parseInt)
-  .option("--retry <count>", "Retry failed requests", parseInt)
+  .option("--timeout <seconds>", "Request timeout in seconds", Number.parseInt)
+  .option("--retry <count>", "Retry failed requests", Number.parseInt)
   .action(async (promptArg, options) => {
     try {
       // Handle positional argument or option

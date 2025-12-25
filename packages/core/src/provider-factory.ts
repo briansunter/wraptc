@@ -9,11 +9,11 @@
  * New: Supports user-defined providers from .ts config files
  */
 
-import type { Provider } from "./providers/index";
-import type { ProviderConfig, Config } from "./types";
 import type { ProviderDefinition } from "./define-provider";
 import { loadProviderConfigs } from "./provider-loader";
 import { createConfigurableProvider } from "./providers/configurable";
+import type { Provider } from "./providers/index";
+import type { Config, ProviderConfig } from "./types";
 
 // Provider creator function type (factory function that creates providers)
 type ProviderCreator = (id: string, config: ProviderConfig) => Provider;
@@ -279,7 +279,7 @@ export class ProviderFactory {
           return binaryExists(providerConfig.binary);
         }
         return false;
-      })
+      }),
     );
 
     return allIds.filter((_, i) => availability[i]);
@@ -303,7 +303,7 @@ export class RequestDeduplicator {
   private pendingRequests: Map<string, Promise<any>> = new Map();
   private readonly ttlMs: number;
 
-  constructor(ttlMs: number = 100) {
+  constructor(ttlMs = 100) {
     this.ttlMs = ttlMs;
   }
 
@@ -321,7 +321,7 @@ export class RequestDeduplicator {
     providerId: string,
     prompt: string,
     mode: string | undefined,
-    executor: () => Promise<T>
+    executor: () => Promise<T>,
   ): Promise<T> {
     const key = this.getKey(providerId, prompt, mode);
 
@@ -364,7 +364,7 @@ export class BufferPool {
   private pool: string[][] = [];
   private readonly maxPoolSize: number;
 
-  constructor(maxPoolSize: number = 10) {
+  constructor(maxPoolSize = 10) {
     this.maxPoolSize = maxPoolSize;
   }
 

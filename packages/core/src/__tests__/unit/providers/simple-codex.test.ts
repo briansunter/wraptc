@@ -1,4 +1,4 @@
-import { describe, test, expect } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { CodexProvider } from "../../../providers/codex";
 
 describe("Simple Codex Test", () => {

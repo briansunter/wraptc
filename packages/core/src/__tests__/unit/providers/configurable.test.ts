@@ -1,10 +1,10 @@
-import { describe, test, expect, beforeEach, afterEach, mock } from "bun:test";
-import { ConfigurableProvider, createConfigurableProvider } from "../../../providers/configurable";
+import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 import { defineProvider } from "../../../define-provider";
+import { ConfigurableProvider, createConfigurableProvider } from "../../../providers/configurable";
 import type { CodingRequest, ProviderDefinition } from "../../../types";
 
 // Mock Bun.spawn for provider tests
-const createMockProcess = (stdout: string, stderr: string = "", exitCode: number = 0) => {
+const createMockProcess = (stdout: string, stderr = "", exitCode = 0) => {
   const encoder = new TextEncoder();
   const stdoutData = encoder.encode(stdout);
   const stderrData = encoder.encode(stderr);
@@ -131,9 +131,12 @@ describe("ConfigurableProvider - Phase 2 Features", () => {
 
       const spawnArgs = mockSpawn.mock.calls[0][0];
       // Should contain combined prompt
-      expect(spawnArgs.some((arg: string) =>
-        arg.includes("You are a helpful assistant") && arg.includes("Hello world")
-      )).toBe(true);
+      expect(
+        spawnArgs.some(
+          (arg: string) =>
+            arg.includes("You are a helpful assistant") && arg.includes("Hello world"),
+        ),
+      ).toBe(true);
     });
   });
 
@@ -254,7 +257,7 @@ describe("ConfigurableProvider - Phase 2 Features", () => {
       expect(spawnOpts.env.API_KEY).toBe("interpolated-value");
 
       // Clean up
-      delete process.env.TEST_API_KEY;
+      process.env.TEST_API_KEY = undefined;
     });
 
     test("should allow opts.env to override definition env", async () => {

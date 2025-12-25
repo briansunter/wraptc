@@ -9,9 +9,9 @@ export interface StateManagerOptions {
 export class StateManager {
   private statePath: string;
   private state: FullState;
-  private isDirty: boolean = false;
+  private isDirty = false;
   private saveTimer?: Timer;
-  private initialized: boolean = false;
+  private initialized = false;
 
   constructor(options: StateManagerOptions = {}) {
     this.statePath = options.statePath || this.getDefaultStatePath();
@@ -111,7 +111,7 @@ export class StateManager {
     return state;
   }
 
-  async recordSuccess(providerId: string, tokensSaved: number = 0): Promise<void> {
+  async recordSuccess(providerId: string, tokensSaved = 0): Promise<void> {
     const state = await this.getProviderState(providerId);
     const now = new Date();
 
@@ -166,7 +166,7 @@ export class StateManager {
     await this.initialize();
     return Object.values(this.state.providers).reduce(
       (sum, state) => sum + (state.totalTokensSaved || 0),
-      0
+      0,
     );
   }
 
@@ -177,7 +177,7 @@ export class StateManager {
     await this.initialize();
     return Object.values(this.state.providers).reduce(
       (sum, state) => sum + (state.tokensSavedToday || 0),
-      0
+      0,
     );
   }
 

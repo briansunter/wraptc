@@ -1,8 +1,8 @@
-import { describe, test, expect, beforeEach, mock } from "bun:test";
-import { Router } from "../../router";
-import type { CodingRequest, ProviderErrorContext } from "../../types";
+import { beforeEach, describe, expect, mock, test } from "bun:test";
 import type { Provider } from "../../providers/index";
+import { Router } from "../../router";
 import type { StateManager } from "../../state";
+import type { CodingRequest, ProviderErrorContext } from "../../types";
 import type { Config } from "../../types";
 
 // Mock Provider for testing
@@ -13,8 +13,8 @@ class MockProvider implements Provider {
   readonly prefersJson: boolean;
   readonly capabilities?: string[];
 
-  private shouldFail: boolean = false;
-  private shouldStream: boolean = false;
+  private shouldFail = false;
+  private shouldStream = false;
   private failWith: Error | null = null;
 
   constructor(id: string, displayName: string, supportsStreaming = false) {
@@ -173,7 +173,7 @@ describe("Router", () => {
       expect(response.provider).toBe("provider1");
       expect(response.text).toBe("Response from provider1");
       expect(response.usage).toEqual({ inputTokens: 10, outputTokens: 20 });
-      expect(mockStateManager.recordSuccess).toHaveBeenCalledWith("provider1");
+      expect(mockStateManager.recordSuccess).toHaveBeenCalledWith("provider1", 20);
     });
 
     test("should use explicit provider when specified", async () => {
@@ -187,7 +187,7 @@ describe("Router", () => {
       const response = await router.route(req);
 
       expect(response.provider).toBe("provider2");
-      expect(mockStateManager.recordSuccess).toHaveBeenCalledWith("provider2");
+      expect(mockStateManager.recordSuccess).toHaveBeenCalledWith("provider2", 20);
     });
 
     test("should skip to next provider when first fails with TRANSIENT error", async () => {
@@ -208,7 +208,7 @@ describe("Router", () => {
         "TRANSIENT",
         "Transient error",
       );
-      expect(mockStateManager.recordSuccess).toHaveBeenCalledWith("provider2");
+      expect(mockStateManager.recordSuccess).toHaveBeenCalledWith("provider2", 20);
     });
 
     test("should mark provider as out of credits on OUT_OF_CREDITS error", async () => {
@@ -263,7 +263,7 @@ describe("Router", () => {
         stream: false,
       };
 
-      await expect(router.route(req)).rejects.toThrow("Bad request: Bad request");
+      await expect(router.route(req)).rejects.toThrow("Bad request to provider1");
       expect(mockStateManager.recordError).toHaveBeenCalledWith(
         "provider1",
         "BAD_REQUEST",
@@ -333,7 +333,7 @@ describe("Router", () => {
         stream: false,
       };
 
-      await expect(failingRouter.route(req)).rejects.toThrow("All providers failed");
+      await expect(failingRouter.route(req)).rejects.toThrow(/All \d+ providers failed/);
     });
 
     test("should use per-mode override routing", async () => {
@@ -389,7 +389,8 @@ describe("Router", () => {
       expect(events).toHaveLength(1);
       expect(events[0].provider).toBe("provider1");
       expect(events[0].text).toBe("Complete response from provider1");
-      expect(mockStateManager.recordSuccess).toHaveBeenCalledWith("provider1");
+      // Mock runStream doesn't include usage data, so tokens will be 0
+      expect(mockStateManager.recordSuccess).toHaveBeenCalledWith("provider1", 0);
     });
 
     test("should handle streaming provider failure and fallback", async () => {
@@ -414,7 +415,8 @@ describe("Router", () => {
         "TRANSIENT",
         "Stream failed",
       );
-      expect(mockStateManager.recordSuccess).toHaveBeenCalledWith("provider2");
+      // Mock runStream doesn't include usage data, so tokens will be 0
+      expect(mockStateManager.recordSuccess).toHaveBeenCalledWith("provider2", 0);
     });
 
     test("should include timing metadata in streaming responses", async () => {
@@ -438,9 +440,9 @@ describe("Router", () => {
       const provider1 = mockProviders.get("provider1")!;
       provider1.runStream = async function* (req: CodingRequest, opts: any) {
         yield { type: "start", provider: this.id, requestId: "req-123" };
-        yield { type: "delta", text: "First chunk from " + this.id };
-        yield { type: "delta", text: "Second chunk from " + this.id };
-        yield { type: "complete", provider: this.id, text: "Final response from " + this.id };
+        yield { type: "delta", text: `First chunk from ${this.id}` };
+        yield { type: "delta", text: `Second chunk from ${this.id}` };
+        yield { type: "complete", provider: this.id, text: `Final response from ${this.id}` };
       };
 
       const req: CodingRequest = {
@@ -457,7 +459,8 @@ describe("Router", () => {
       expect(events).toHaveLength(1);
       expect(events[0].provider).toBe("provider1");
       expect(events[0].text).toBe("Final response from provider1");
-      expect(mockStateManager.recordSuccess).toHaveBeenCalledWith("provider1");
+      // No usage data in custom runStream, so tokens will be 0
+      expect(mockStateManager.recordSuccess).toHaveBeenCalledWith("provider1", 0);
     });
 
     test("should handle streaming error events", async () => {
@@ -489,7 +492,8 @@ describe("Router", () => {
       expect(events).toHaveLength(1);
       expect(events[0].provider).toBe("provider1");
       expect(events[0].text).toBe("Final response");
-      expect(mockStateManager.recordSuccess).toHaveBeenCalledWith("provider1");
+      // No usage data in custom runStream, so tokens will be 0
+      expect(mockStateManager.recordSuccess).toHaveBeenCalledWith("provider1", 0);
     });
 
     test("should handle streaming provider failure with fallback to next provider", async () => {
@@ -512,7 +516,7 @@ describe("Router", () => {
         events.push(event);
       }
 
-      // Should fallback to provider2
+      // Should fallback to provider2 (which uses default mock with no usage)
       expect(events).toHaveLength(1);
       expect(events[0].provider).toBe("provider2");
       expect(mockStateManager.recordError).toHaveBeenCalledWith(
@@ -520,7 +524,8 @@ describe("Router", () => {
         "TRANSIENT",
         "Streaming error",
       );
-      expect(mockStateManager.recordSuccess).toHaveBeenCalledWith("provider2");
+      // Mock runStream doesn't include usage data, so tokens will be 0
+      expect(mockStateManager.recordSuccess).toHaveBeenCalledWith("provider2", 0);
     });
 
     test("should handle streaming with different streaming modes", async () => {
@@ -548,7 +553,8 @@ describe("Router", () => {
       expect(events).toHaveLength(1);
       expect(events[0].provider).toBe("provider1");
       expect(events[0].text).toBe("Line 1\nLine 2\nLine 3\n");
-      expect(mockStateManager.recordSuccess).toHaveBeenCalledWith("provider1");
+      // No usage data in custom runStream, so tokens will be 0
+      expect(mockStateManager.recordSuccess).toHaveBeenCalledWith("provider1", 0);
     });
 
     test("should handle streaming with usage data", async () => {
@@ -580,7 +586,7 @@ describe("Router", () => {
       expect(events[0].provider).toBe("provider1");
       expect(events[0].text).toBe("Complete response");
       expect(events[0].usage).toEqual({ inputTokens: 15, outputTokens: 25 });
-      expect(mockStateManager.recordSuccess).toHaveBeenCalledWith("provider1");
+      expect(mockStateManager.recordSuccess).toHaveBeenCalledWith("provider1", 25);
     });
 
     test("should handle streaming with explicit provider", async () => {
@@ -599,7 +605,8 @@ describe("Router", () => {
       expect(events).toHaveLength(1);
       expect(events[0].provider).toBe("provider2");
       expect(events[0].text).toBe("Complete response from provider2");
-      expect(mockStateManager.recordSuccess).toHaveBeenCalledWith("provider2");
+      // Mock runStream doesn't include usage data, so tokens will be 0
+      expect(mockStateManager.recordSuccess).toHaveBeenCalledWith("provider2", 0);
     });
 
     test("should handle streaming with per-mode override", async () => {
@@ -617,7 +624,8 @@ describe("Router", () => {
       expect(events).toHaveLength(1);
       expect(events[0].provider).toBe("provider2"); // Should use provider2 first due to override
       expect(events[0].text).toBe("Complete response from provider2");
-      expect(mockStateManager.recordSuccess).toHaveBeenCalledWith("provider2");
+      // Mock runStream doesn't include usage data, so tokens will be 0
+      expect(mockStateManager.recordSuccess).toHaveBeenCalledWith("provider2", 0);
     });
 
     test("should handle streaming with out of credits provider", async () => {
@@ -694,7 +702,7 @@ describe("Router", () => {
         return events;
       };
 
-      await expect(collectEvents()).rejects.toThrow("All providers failed");
+      await expect(collectEvents()).rejects.toThrow(/All \d+ providers failed/);
 
       expect(mockStateManager.recordError).toHaveBeenCalledWith(
         "provider1",
@@ -732,7 +740,7 @@ describe("Router", () => {
         return events;
       };
 
-      await expect(collectEvents()).rejects.toThrow("Bad request: Bad request");
+      await expect(collectEvents()).rejects.toThrow("Bad request to provider1");
 
       expect(mockStateManager.recordError).toHaveBeenCalledWith(
         "provider1",
@@ -785,7 +793,7 @@ describe("Router", () => {
         return events;
       };
 
-      await expect(collectEvents()).rejects.toThrow("Bad request: Bad request");
+      await expect(collectEvents()).rejects.toThrow("Bad request to provider1");
 
       expect(mockStateManager.recordError).toHaveBeenCalledWith(
         "provider1",

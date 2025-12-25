@@ -1,6 +1,6 @@
 import { rename } from "node:fs/promises";
-import { join, dirname } from "node:path";
-import { Command } from "commander";
+import { dirname, join } from "node:path";
+import type { Command } from "commander";
 import type { Config } from "./types";
 import { ConfigSchema } from "./types";
 
@@ -141,15 +141,16 @@ export class ConfigLoader {
   }
 
   private async loadConfigFile(filePath: string): Promise<Config | null> {
+    // Use Bun.file() for async file existence check and reading
+    const file = Bun.file(filePath);
+    const exists = await file.exists();
+
+    if (!exists) {
+      return null;
+    }
+
+    // File exists - now errors are meaningful and should be reported
     try {
-      // Use Bun.file() for async file existence check and reading
-      const file = Bun.file(filePath);
-      const exists = await file.exists();
-
-      if (!exists) {
-        return null;
-      }
-
       const content = await file.text();
       const parsed = JSON.parse(content);
 
@@ -157,9 +158,13 @@ export class ConfigLoader {
         console.debug(`[ConfigLoader] Loaded config from ${filePath}`);
       }
       return parsed;
-    } catch {
-      // Silently fail for missing/invalid config files - they're optional
-      return null;
+    } catch (error) {
+      // File exists but couldn't be read or parsed - this is a real error
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (errorMessage.includes("JSON")) {
+        throw new Error(`Invalid JSON in config file ${filePath}: ${errorMessage}`);
+      }
+      throw new Error(`Failed to read config file ${filePath}: ${errorMessage}`);
     }
   }
 

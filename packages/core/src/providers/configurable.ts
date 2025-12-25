@@ -15,6 +15,7 @@
  * - Default working directory
  */
 
+import { DEFAULT_ERROR_PATTERNS, type ProviderDefinition } from "../define-provider";
 import type {
   CodingEvent,
   CodingRequest,
@@ -24,10 +25,6 @@ import type {
   TokenUsage,
 } from "../types";
 import type { Provider, ProviderInvokeOptions } from "./index";
-import {
-  type ProviderDefinition,
-  DEFAULT_ERROR_PATTERNS,
-} from "../define-provider";
 
 // Default timeout: 60 seconds
 const DEFAULT_TIMEOUT_MS = 60_000;
@@ -130,7 +127,11 @@ export class ConfigurableProvider implements Provider {
     }
 
     // Add system prompt flag if configured and system prompt provided
-    if (config.args.systemPromptFlag && req.systemPrompt && config.args.systemPromptMethod !== "combined") {
+    if (
+      config.args.systemPromptFlag &&
+      req.systemPrompt &&
+      config.args.systemPromptMethod !== "combined"
+    ) {
       args.push(config.args.systemPromptFlag, req.systemPrompt);
     }
 
@@ -271,10 +272,7 @@ export class ConfigurableProvider implements Provider {
       return this.definition.classifyError(error);
     }
 
-    const combined = (
-      (error.stderr || "") +
-      (error.stdout || "")
-    ).toLowerCase();
+    const combined = ((error.stderr || "") + (error.stdout || "")).toLowerCase();
 
     // Check provider-specific patterns first
     const providerPatterns = this.definition.errors || {};
@@ -299,7 +297,7 @@ export class ConfigurableProvider implements Provider {
    */
   private async executeOnce(
     req: CodingRequest,
-    opts: ProviderInvokeOptions
+    opts: ProviderInvokeOptions,
   ): Promise<{ text: string; usage?: TokenUsage }> {
     const args = this.buildArgs(req);
     const stdin = this.getStdinInput(req);
@@ -353,7 +351,7 @@ export class ConfigurableProvider implements Provider {
             totalSize += text.length;
             if (totalSize > this.maxOutputSize) {
               proc.kill();
-              throw new Error(`Output exceeded maximum size limit`);
+              throw new Error("Output exceeded maximum size limit");
             }
           }
         } finally {
@@ -393,9 +391,7 @@ export class ConfigurableProvider implements Provider {
 
       // Check exit code against allowed codes
       if (!this.isSuccessExitCode(exitCode)) {
-        const error = new Error(
-          `${this.displayName} failed with code ${exitCode}: ${stderr}`
-        );
+        const error = new Error(`${this.displayName} failed with code ${exitCode}: ${stderr}`);
         (error as Error & { exitCode: number; stderr: string }).exitCode = exitCode ?? -1;
         (error as Error & { exitCode: number; stderr: string }).stderr = stderr;
         throw error;
@@ -412,7 +408,7 @@ export class ConfigurableProvider implements Provider {
    */
   async runOnce(
     req: CodingRequest,
-    opts: ProviderInvokeOptions
+    opts: ProviderInvokeOptions,
   ): Promise<{ text: string; usage?: TokenUsage }> {
     const retryConfig = this.definition.retry;
     const maxAttempts = retryConfig?.maxAttempts ?? 1;
@@ -450,7 +446,7 @@ export class ConfigurableProvider implements Provider {
         }
 
         // Wait before retrying with exponential backoff
-        const waitTime = delayMs * Math.pow(backoffMultiplier, attempt - 1);
+        const waitTime = delayMs * backoffMultiplier ** (attempt - 1);
         await new Promise((resolve) => setTimeout(resolve, waitTime));
       }
     }
@@ -462,10 +458,7 @@ export class ConfigurableProvider implements Provider {
   /**
    * Execute a streaming request
    */
-  async *runStream(
-    req: CodingRequest,
-    opts: ProviderInvokeOptions
-  ): AsyncGenerator<CodingEvent> {
+  async *runStream(req: CodingRequest, opts: ProviderInvokeOptions): AsyncGenerator<CodingEvent> {
     const requestId = crypto.randomUUID();
     yield { type: "start", provider: this.id, requestId };
 
@@ -539,7 +532,7 @@ export class ConfigurableProvider implements Provider {
             } else if (streamMode === "line") {
               for (const line of text.split("\n")) {
                 if (line.trim()) {
-                  yield { type: "text_delta", text: line + "\n" };
+                  yield { type: "text_delta", text: `${line}\n` };
                 }
               }
             } else {
@@ -639,8 +632,6 @@ export class ConfigurableProvider implements Provider {
 /**
  * Create a ConfigurableProvider from a ProviderDefinition
  */
-export function createConfigurableProvider(
-  definition: ProviderDefinition
-): ConfigurableProvider {
+export function createConfigurableProvider(definition: ProviderDefinition): ConfigurableProvider {
   return new ConfigurableProvider(definition);
 }

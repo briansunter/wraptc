@@ -3,7 +3,7 @@ import { OpenCodeProvider } from "../../../providers/opencode";
 import type { CodingRequest, ProviderConfig } from "../../../types";
 
 // Mock Bun.spawn for provider tests
-const createMockProcess = (stdout: string, stderr: string = "", exitCode: number = 0) => {
+const createMockProcess = (stdout: string, stderr = "", exitCode = 0) => {
   const encoder = new TextEncoder();
   const stdoutData = encoder.encode(stdout);
   const stderrData = encoder.encode(stderr);

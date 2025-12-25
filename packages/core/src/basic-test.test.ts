@@ -1,8 +1,8 @@
-import { describe, test, expect } from "bun:test";
-import { StateManager } from "./state";
-import { Router } from "./router";
+import { describe, expect, test } from "bun:test";
 import { ConfigLoader } from "./config";
 import { MemoryMonitor } from "./memory-monitor";
+import { Router } from "./router";
+import { StateManager } from "./state";
 import { WrapTerminalCoder } from "./wrap-terminalcoder";
 
 describe("Basic Class Tests", () => {
@@ -29,9 +29,9 @@ describe("Basic Class Tests", () => {
       config: {
         routing: { defaultOrder: [], perModeOverride: {} },
         providers: {},
-        credits: { providers: {} }
+        credits: { providers: {} },
       },
-      stateManager: new StateManager()
+      stateManager: new StateManager(),
     });
     expect(router).toBeDefined();
     expect(typeof router).toBe("object");

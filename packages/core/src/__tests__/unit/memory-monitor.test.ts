@@ -1,10 +1,10 @@
-import { describe, test, expect, beforeEach, afterEach, mock, spyOn } from "bun:test";
+import { afterEach, beforeEach, describe, expect, mock, spyOn, test } from "bun:test";
 import {
   MemoryMonitor,
-  memoryMonitor,
-  formatBytes,
   type MemoryStats,
   type MemoryThresholds,
+  formatBytes,
+  memoryMonitor,
 } from "../../memory-monitor";
 
 // Mock process.memoryUsage
@@ -165,8 +165,8 @@ describe("MemoryMonitor", () => {
     test("should start periodic monitoring", () => {
       monitor.startMonitoring(100);
 
-      expect(monitor["isMonitoring"]).toBe(true);
-      expect(monitor["intervalId"]).not.toBeNull();
+      expect(monitor.isMonitoring).toBe(true);
+      expect(monitor.intervalId).not.toBeNull();
       expect(console.log).toHaveBeenCalledWith(
         "[MemoryMonitor] Started monitoring memory usage every 100ms",
       );
@@ -233,12 +233,12 @@ describe("MemoryMonitor", () => {
   describe("stopMonitoring", () => {
     test("should stop monitoring and clear interval", () => {
       monitor.startMonitoring(100);
-      expect(monitor["isMonitoring"]).toBe(true);
+      expect(monitor.isMonitoring).toBe(true);
 
       monitor.stopMonitoring();
 
-      expect(monitor["isMonitoring"]).toBe(false);
-      expect(monitor["intervalId"]).toBeNull();
+      expect(monitor.isMonitoring).toBe(false);
+      expect(monitor.intervalId).toBeNull();
       expect(console.log).toHaveBeenCalledWith("[MemoryMonitor] Stopped monitoring");
     });
 
@@ -255,7 +255,7 @@ describe("MemoryMonitor", () => {
 
       monitor.setThresholds(newThresholds);
 
-      expect(monitor["thresholds"]).toEqual(newThresholds);
+      expect(monitor.thresholds).toEqual(newThresholds);
     });
   });
 
@@ -270,7 +270,7 @@ describe("MemoryMonitor", () => {
     });
 
     test("should log when GC is not available", () => {
-      delete (global as any).gc;
+      (global as any).gc = undefined;
 
       monitor.forceGC();
 

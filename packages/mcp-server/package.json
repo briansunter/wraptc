@@ -6,7 +6,7 @@
     "wtc-mcp": "./dist/server.js"
   },
   "scripts": {
-    "build": "bun build ./src/server.ts --outdir ./dist --target node",
+    "build": "bun build ./src/server.ts --outdir ./dist --target bun",
     "dev": "bun --watch src/server.ts"
   },
   "dependencies": {

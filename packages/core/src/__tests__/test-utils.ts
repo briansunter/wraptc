@@ -1,6 +1,7 @@
+import { mock } from "bun:test";
 // Test utilities for reliable and consistent testing
 import { mkdir, rm } from "node:fs/promises";
-import { mock } from "bun:test";
+import type { CodingRequest, Config } from "../types";
 
 export interface TestEnvironment {
   tempDir: string;
@@ -57,7 +58,7 @@ export function createMockProvider(
       currentFailWith = error || new Error("Mock failure");
     },
 
-    runOnce: mock(async (req: any) => {
+    runOnce: mock(async (_req: CodingRequest) => {
       if (currentShouldFail && currentFailWith) {
         throw currentFailWith;
       }
@@ -67,7 +68,7 @@ export function createMockProvider(
       };
     }),
 
-    runStream: mock(async function* (req: any) {
+    runStream: mock(async function* (_req: CodingRequest) {
       if (currentShouldFail && currentFailWith) {
         throw currentFailWith;
       }
@@ -110,7 +111,7 @@ export function createMockStateManager() {
 /**
  * Create mock config for testing
  */
-export function createMockConfig(overrides: Partial<any> = {}) {
+export function createMockConfig(overrides: Partial<Config> = {}) {
   return {
     routing: {
       defaultOrder: ["provider1", "provider2", "provider3"],

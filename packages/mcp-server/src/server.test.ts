@@ -1,6 +1,6 @@
-import { describe, test, expect, beforeEach, mock, spyOn } from "bun:test";
-import { WrapTerminalCoderMCPServer } from "./server";
+import { beforeEach, describe, expect, mock, spyOn, test } from "bun:test";
 import type { CodingRequest } from "@wrap-terminalcoder/core";
+import { WrapTerminalCoderMCPServer } from "./server";
 
 // Mock WrapTerminalCoder
 const mockRoute = mock(async (request: CodingRequest) => ({
@@ -89,11 +89,11 @@ describe("WrapTerminalCoderMCPServer", () => {
     describe("ListTools", () => {
       test("should return list of available tools", async () => {
         const listToolsHandler = mockSetRequestHandler.mock.calls.find(
-          (call: any[]) => call[0] === "list-tools-schema"
+          (call: any[]) => call[0] === "list-tools-schema",
         )?.[1];
 
         expect(listToolsHandler).toBeDefined();
-        const result = await listToolsHandler!();
+        const result = await listToolsHandler?.();
 
         expect(result.tools).toHaveLength(3);
         expect(result.tools.map((t: any) => t.name)).toEqual([
@@ -105,10 +105,10 @@ describe("WrapTerminalCoderMCPServer", () => {
 
       test("should include tool schemas with correct properties", async () => {
         const listToolsHandler = mockSetRequestHandler.mock.calls.find(
-          (call: any[]) => call[0] === "list-tools-schema"
+          (call: any[]) => call[0] === "list-tools-schema",
         )?.[1];
 
-        const result = await listToolsHandler!();
+        const result = await listToolsHandler?.();
 
         const runCodingTask = result.tools.find((t: any) => t.name === "run_coding_task");
         expect(runCodingTask.inputSchema.properties.prompt.type).toBe("string");
@@ -127,7 +127,7 @@ describe("WrapTerminalCoderMCPServer", () => {
 
       beforeEach(() => {
         const handler = mockSetRequestHandler.mock.calls.find(
-          (call: any[]) => call[0] === "call-tool-schema"
+          (call: any[]) => call[0] === "call-tool-schema",
         )?.[1];
         callToolHandler = handler!;
       });
@@ -185,7 +185,7 @@ describe("WrapTerminalCoderMCPServer", () => {
 
       beforeEach(() => {
         const handler = mockSetRequestHandler.mock.calls.find(
-          (call: any[]) => call[0] === "call-tool-schema"
+          (call: any[]) => call[0] === "call-tool-schema",
         )?.[1];
         callToolHandler = handler!;
       });
@@ -212,7 +212,7 @@ describe("WrapTerminalCoderMCPServer", () => {
 
       beforeEach(() => {
         const handler = mockSetRequestHandler.mock.calls.find(
-          (call: any[]) => call[0] === "call-tool-schema"
+          (call: any[]) => call[0] === "call-tool-schema",
         )?.[1];
         callToolHandler = handler!;
       });
@@ -262,7 +262,7 @@ describe("WrapTerminalCoderMCPServer", () => {
 
       beforeEach(() => {
         const handler = mockSetRequestHandler.mock.calls.find(
-          (call: any[]) => call[0] === "call-tool-schema"
+          (call: any[]) => call[0] === "call-tool-schema",
         )?.[1];
         callToolHandler = handler!;
       });

@@ -1,27 +1,13 @@
 {
   "routing": {
-    "defaultOrder": [
-      "my-local-llm",
-      "qwen-code",
-      "gemini"
-    ]
+    "defaultOrder": ["my-local-llm", "qwen-code", "gemini"]
   },
   "providers": {
     "my-local-llm": {
       "binary": "/usr/local/bin/my-llm-cli",
-      "argsTemplate": [
-        "--model",
-        "gpt-4",
-        "--temperature",
-        "0.7",
-        "--prompt",
-        "{{prompt}}"
-      ],
+      "argsTemplate": ["--model", "gpt-4", "--temperature", "0.7", "--prompt", "{{prompt}}"],
       "streamingMode": "line",
-      "capabilities": [
-        "generate",
-        "explain"
-      ],
+      "capabilities": ["generate", "explain"],
       "jsonMode": "none"
     },
     "qwen-code": {
@@ -30,12 +16,7 @@
       "jsonMode": "flag",
       "jsonFlag": "--json",
       "streamingMode": "jsonl",
-      "capabilities": [
-        "generate",
-        "edit",
-        "explain",
-        "test"
-      ]
+      "capabilities": ["generate", "edit", "explain", "test"]
     },
     "gemini": {
       "binary": "gemini",
@@ -43,12 +24,7 @@
       "jsonMode": "flag",
       "jsonFlag": "--output-format",
       "streamingMode": "jsonl",
-      "capabilities": [
-        "generate",
-        "edit",
-        "explain",
-        "test"
-      ]
+      "capabilities": ["generate", "edit", "explain", "test"]
     }
   },
   "credits": {

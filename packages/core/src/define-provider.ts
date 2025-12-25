@@ -17,12 +17,7 @@
  */
 
 import { z } from "zod";
-import type {
-  CodingRequest,
-  ProviderErrorContext,
-  ProviderErrorKind,
-  TokenUsage,
-} from "./types";
+import type { CodingRequest, ProviderErrorContext, ProviderErrorKind, TokenUsage } from "./types";
 
 // Input configuration - how to pass the prompt to the CLI
 export const InputConfigSchema = z

@@ -8,12 +8,9 @@
  * Bun imports TypeScript directly - no build step required!
  */
 
-import { join } from "node:path";
 import { existsSync } from "node:fs";
-import {
-  type ProviderDefinition,
-  ProviderDefinitionSchema,
-} from "./define-provider";
+import { join } from "node:path";
+import { type ProviderDefinition, ProviderDefinitionSchema } from "./define-provider";
 
 // Directories to scan for provider configs (in order of precedence)
 const PROVIDER_DIRS = [
@@ -26,9 +23,7 @@ const PROVIDER_DIRS = [
 /**
  * Load a single provider definition from a file
  */
-async function loadProviderFile(
-  filePath: string
-): Promise<ProviderDefinition | null> {
+async function loadProviderFile(filePath: string): Promise<ProviderDefinition | null> {
   try {
     // Bun imports TypeScript directly - no transpilation needed!
     const module = await import(filePath);
@@ -63,16 +58,12 @@ async function loadProviderFile(
  *
  * @returns Map of provider ID to ProviderDefinition
  */
-export async function loadProviderConfigs(): Promise<
-  Map<string, ProviderDefinition>
-> {
+export async function loadProviderConfigs(): Promise<Map<string, ProviderDefinition>> {
   const providers = new Map<string, ProviderDefinition>();
 
   for (const dir of PROVIDER_DIRS) {
     // Resolve relative paths
-    const resolvedDir = dir.startsWith(".")
-      ? join(process.cwd(), dir)
-      : dir;
+    const resolvedDir = dir.startsWith(".") ? join(process.cwd(), dir) : dir;
 
     if (!existsSync(resolvedDir)) {
       continue;
@@ -109,14 +100,12 @@ export async function loadProviderConfigs(): Promise<
  * (for development/hot-reload scenarios)
  */
 export async function watchProviderConfigs(
-  onChange: (providers: Map<string, ProviderDefinition>) => void
+  onChange: (providers: Map<string, ProviderDefinition>) => void,
 ): Promise<() => void> {
   const watchers: Array<{ close: () => void }> = [];
 
   for (const dir of PROVIDER_DIRS) {
-    const resolvedDir = dir.startsWith(".")
-      ? join(process.cwd(), dir)
-      : dir;
+    const resolvedDir = dir.startsWith(".") ? join(process.cwd(), dir) : dir;
 
     if (!existsSync(resolvedDir)) {
       continue;
@@ -165,21 +154,14 @@ export async function watchProviderConfigs(
  * Get the paths where providers can be placed
  */
 export function getProviderDirectories(): string[] {
-  return PROVIDER_DIRS.map((dir) =>
-    dir.startsWith(".") ? join(process.cwd(), dir) : dir
-  );
+  return PROVIDER_DIRS.map((dir) => (dir.startsWith(".") ? join(process.cwd(), dir) : dir));
 }
 
 /**
  * Create the user provider directory if it doesn't exist
  */
 export async function ensureUserProviderDir(): Promise<string> {
-  const userDir = join(
-    process.env.HOME || "~",
-    ".config",
-    "wrap-terminalcoder",
-    "providers"
-  );
+  const userDir = join(process.env.HOME || "~", ".config", "wrap-terminalcoder", "providers");
 
   if (!existsSync(userDir)) {
     await Bun.$`mkdir -p ${userDir}`.quiet();

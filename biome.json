@@ -1,12 +1,28 @@
 {
   "$schema": "https://biomejs.dev/schemas/1.8.0/schema.json",
+  "files": {
+    "ignore": ["**/dist/**", "**/node_modules/**", "**/*.d.ts"]
+  },
   "organizeImports": {
     "enabled": true
   },
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": true
+      "recommended": true,
+      "suspicious": {
+        "noExplicitAny": "warn"
+      },
+      "complexity": {
+        "noBannedTypes": "warn",
+        "noForEach": "warn"
+      },
+      "correctness": {
+        "noUnreachable": "warn"
+      },
+      "style": {
+        "noNonNullAssertion": "warn"
+      }
     }
   },
   "formatter": {

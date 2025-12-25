@@ -15,13 +15,7 @@
     "test:coverage:integration": "bun test src/__tests__/integration/ --coverage",
     "test:watch": "bun test --watch"
   },
-  "keywords": [
-    "terminal",
-    "ai",
-    "routing",
-    "provider",
-    "integration"
-  ],
+  "keywords": ["terminal", "ai", "routing", "provider", "integration"],
   "author": "",
   "license": "MIT",
   "dependencies": {

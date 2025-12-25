@@ -1,8 +1,8 @@
-import { describe, test, expect, beforeEach, afterEach } from "bun:test";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { mkdir, readFile, unlink, writeFile } from "node:fs/promises";
+import { join } from "node:path";
 import { StateManager } from "../../state";
 import type { FullState } from "../../types";
-import { mkdir, readFile, writeFile, unlink } from "node:fs/promises";
-import { join } from "node:path";
 
 describe("StateManager", () => {
   let stateManager: StateManager;
@@ -41,21 +41,6 @@ describe("StateManager", () => {
     process.env.HOME = originalHome;
 
     // Clean up test files
-    try {
-      await unlink(tempStatePath);
-    } catch {
-      // File doesn't exist, that's fine
-    }
-
-    try {
-      await unlink(join(tempStateDir, "state.json"));
-    } catch {
-      // File doesn't exist, that's fine
-    }
-  });
-
-  afterEach(async () => {
-    // Clean up test files after each test
     try {
       await unlink(tempStatePath);
     } catch {
@@ -963,7 +948,7 @@ describe("StateManager", () => {
       await (stateManager as any).recordSuccess("test-provider");
 
       // Verify state before reset
-      let state = await (stateManager as any).getProviderState("test-provider");
+      const state = await (stateManager as any).getProviderState("test-provider");
       expect(state.outOfCreditsUntil).toBe(futureDate.toISOString());
       expect(state.requestsToday).toBe(2);
 

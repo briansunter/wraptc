@@ -56,7 +56,7 @@ export const ConfigSchema = z.object({
         z.object({
           plan: z.string(),
         }),
-      ])
+      ]),
     ),
   }),
 });
@@ -168,18 +168,18 @@ export interface ProviderErrorContext {
 
 // Error kind enum - expanded
 export type ProviderErrorKind =
-  | "OUT_OF_CREDITS"    // Provider credits/quota exhausted
-  | "RATE_LIMIT"        // Rate limit hit, retry after cooldown
-  | "BAD_REQUEST"       // Invalid request (malformed, missing params)
-  | "UNAUTHORIZED"      // Authentication failed (bad API key)
-  | "FORBIDDEN"         // Permission denied
-  | "NOT_FOUND"         // Resource not found (model, endpoint)
-  | "TIMEOUT"           // Request timed out
-  | "CONTEXT_LENGTH"    // Input too long for model
-  | "CONTENT_FILTER"    // Content blocked by safety filter
-  | "INTERNAL"          // Provider internal error
-  | "TRANSIENT"         // Temporary error, safe to retry
-  | "UNKNOWN";          // Unknown error type
+  | "OUT_OF_CREDITS" // Provider credits/quota exhausted
+  | "RATE_LIMIT" // Rate limit hit, retry after cooldown
+  | "BAD_REQUEST" // Invalid request (malformed, missing params)
+  | "UNAUTHORIZED" // Authentication failed (bad API key)
+  | "FORBIDDEN" // Permission denied
+  | "NOT_FOUND" // Resource not found (model, endpoint)
+  | "TIMEOUT" // Request timed out
+  | "CONTEXT_LENGTH" // Input too long for model
+  | "CONTENT_FILTER" // Content blocked by safety filter
+  | "INTERNAL" // Provider internal error
+  | "TRANSIENT" // Temporary error, safe to retry
+  | "UNKNOWN"; // Unknown error type
 
 // Provider info type
 export interface ProviderInfo {

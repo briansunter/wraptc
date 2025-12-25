@@ -4,17 +4,17 @@
 
 // Types
 export type {
-	PluginDefinition,
-	PluginRegistrationOptions,
-	PluginRegistrationResult,
-	PluginInfo,
-	CreateProviderOptions,
-	ManagedProvider,
-	PluginContext,
-	IPluginRegistry,
-	IPluginLifecycle,
-	ProviderFactory,
-	PluginConfigType,
+  PluginDefinition,
+  PluginRegistrationOptions,
+  PluginRegistrationResult,
+  PluginInfo,
+  CreateProviderOptions,
+  ManagedProvider,
+  PluginContext,
+  IPluginRegistry,
+  IPluginLifecycle,
+  ProviderFactory,
+  PluginConfigType,
 } from "./types";
 
 export { isLifecycleProvider } from "./types";
@@ -24,11 +24,11 @@ export { PluginRegistry, getPluginRegistry } from "./registry";
 
 // Built-in plugins
 export {
-	geminiPlugin,
-	qwenCodePlugin,
-	codexPlugin,
-	builtInPlugins,
-	registerBuiltInPlugins,
-	areBuiltInPluginsRegistered,
-	getBuiltInPluginTypes,
+  geminiPlugin,
+  qwenCodePlugin,
+  codexPlugin,
+  builtInPlugins,
+  registerBuiltInPlugins,
+  areBuiltInPluginsRegistered,
+  getBuiltInPluginTypes,
 } from "./builtin";

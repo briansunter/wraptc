@@ -1,9 +1,9 @@
-import { describe, test, expect, beforeEach, afterEach, mock, spyOn } from "bun:test";
+import { afterEach, beforeEach, describe, expect, mock, spyOn, test } from "bun:test";
 import { QwenCodeProvider } from "../../../providers/qwen-code";
 import type { CodingRequest, ProviderConfig } from "../../../types";
 
 // Mock Bun.spawn for provider tests
-const createMockProcess = (stdout: string, stderr: string = "", exitCode: number = 0) => {
+const createMockProcess = (stdout: string, stderr = "", exitCode = 0) => {
   const encoder = new TextEncoder();
   const stdoutData = encoder.encode(stdout);
   const stderrData = encoder.encode(stderr);

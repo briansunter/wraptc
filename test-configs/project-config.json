@@ -1,24 +1,14 @@
 {
   "routing": {
-    "defaultOrder": [
-      "project-provider",
-      "user-provider",
-      "system-provider"
-    ]
+    "defaultOrder": ["project-provider", "user-provider", "system-provider"]
   },
   "providers": {
     "project-provider": {
       "binary": "./project-provider",
-      "args": [
-        "--project-flag"
-      ],
+      "args": ["--project-flag"],
       "jsonMode": "none",
       "streamingMode": "line",
-      "capabilities": [
-        "generate",
-        "edit",
-        "test"
-      ]
+      "capabilities": ["generate", "edit", "test"]
     }
   }
 }

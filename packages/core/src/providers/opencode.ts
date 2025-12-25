@@ -1,3 +1,4 @@
+import { createErrorClassifier } from "../error-patterns";
 /**
  * OpenCodeProvider - Provider for OpenCode agent delegation
  *
@@ -20,32 +21,13 @@ import type {
 } from "../types";
 import { ProcessProvider } from "./index";
 
-// Default error patterns specific to OpenCode
-const OPENCODE_ERROR_PATTERNS: Record<ProviderErrorKind, string[]> = {
-  RATE_LIMIT: [
-    "rate limit",
-    "too many requests",
-    "429",
-    "quota exceeded",
-    "api limit exceeded",
-  ],
-  UNAUTHORIZED: [
-    "authentication failed",
-    "unauthorized",
-    "api key invalid",
-    "api key missing",
-  ],
-  FORBIDDEN: ["permission denied", "forbidden", "access denied"],
-  NOT_FOUND: ["command not found", "no such file or directory"],
-  TIMEOUT: ["timeout", "timed out", "deadline exceeded"],
-  CONTEXT_LENGTH: ["context length", "too long", "max tokens"],
-  CONTENT_FILTER: ["content filter", "blocked", "safety"],
-  INTERNAL: ["internal error", "server error", "500"],
-  TRANSIENT: ["temporarily unavailable", "service unavailable", "connection refused", "econnrefused", "network error"],
-  OUT_OF_CREDITS: ["out of credits", "credits exhausted"],
-  BAD_REQUEST: ["bad request", "invalid request", "malformed"],
-  UNKNOWN: [],
+// OpenCode-specific error patterns (extend defaults)
+const OPENCODE_SPECIFIC_PATTERNS: Partial<Record<ProviderErrorKind, string[]>> = {
+  RATE_LIMIT: ["api limit exceeded"],
 };
+
+// Create classifier with OpenCode-specific patterns merged with defaults
+const classifyOpenCodeError = createErrorClassifier(OPENCODE_SPECIFIC_PATTERNS);
 
 export class OpenCodeProvider extends ProcessProvider {
   constructor(config: ProviderConfig) {
@@ -76,9 +58,7 @@ export class OpenCodeProvider extends ProcessProvider {
     // Build prompt with file context if provided
     let prompt = req.prompt;
     if (req.files && req.files.length > 0) {
-      const fileList = req.files
-        .map((f) => (typeof f === "string" ? f : f.path))
-        .join("\n");
+      const fileList = req.files.map((f) => (typeof f === "string" ? f : f.path)).join("\n");
       prompt = `${prompt}\n\nFiles to consider:\n${fileList}`;
     }
 
@@ -139,23 +119,10 @@ export class OpenCodeProvider extends ProcessProvider {
   }
 
   /**
-   * Classify errors with OpenCode-specific patterns
+   * Classify errors with OpenCode-specific patterns merged with defaults
    */
   classifyError(error: ProviderErrorContext): ProviderErrorKind {
-    const combined = ((error.stderr || "") + (error.stdout || "")).toLowerCase();
-
-    for (const [kind, patterns] of Object.entries(OPENCODE_ERROR_PATTERNS)) {
-      if (patterns.some((p) => combined.includes(p))) {
-        return kind as ProviderErrorKind;
-      }
-    }
-
-    // Check exit code for common error types
-    if (error.exitCode === 127) {
-      return "NOT_FOUND"; // Command not found
-    }
-
-    return "TRANSIENT";
+    return classifyOpenCodeError(error.stderr, error.stdout, error.exitCode);
   }
 
   /**
