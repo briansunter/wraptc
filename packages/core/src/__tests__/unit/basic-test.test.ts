@@ -1,9 +1,9 @@
 import { describe, expect, test } from "bun:test";
-import { ConfigLoader } from "./config";
-import { MemoryMonitor } from "./memory-monitor";
-import { Router } from "./router";
-import { StateManager } from "./state";
-import { WrapTerminalCoder } from "./wrap-terminalcoder";
+import { ConfigLoader } from "../../config";
+import { MemoryMonitor } from "../../memory-monitor";
+import { Router } from "../../router";
+import { StateManager } from "../../state";
+import { WrapTerminalCoder } from "../../wrap-terminalcoder";
 
 describe("Basic Class Tests", () => {
   test("StateManager can be instantiated", () => {
