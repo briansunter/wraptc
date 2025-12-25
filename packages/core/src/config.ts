@@ -1,11 +1,14 @@
 import { rename } from "node:fs/promises";
 import { join, dirname } from "node:path";
+import { Command } from "commander";
 import type { Config } from "./types";
 import { ConfigSchema } from "./types";
 
 export interface ConfigLoaderOptions {
   configPath?: string;
   projectConfigPath?: string;
+  /** Enable debug logging (default: false) */
+  debug?: boolean;
 }
 
 export class ConfigLoader {
@@ -150,10 +153,12 @@ export class ConfigLoader {
       const content = await file.text();
       const parsed = JSON.parse(content);
 
-      console.error(`Loaded config from ${filePath}`);
+      if (this.options.debug) {
+        console.debug(`[ConfigLoader] Loaded config from ${filePath}`);
+      }
       return parsed;
-    } catch (error) {
-      console.error(`Error loading config from ${filePath}:`, error);
+    } catch {
+      // Silently fail for missing/invalid config files - they're optional
       return null;
     }
   }
@@ -260,8 +265,6 @@ export class ConfigLoader {
     return join(process.env.HOME || "~", ".config", "wrap-terminalcoder", "config.json");
   }
 }
-
-import { Command } from "commander";
 
 export function addCLIConfigOverrides(command: Command): void {
   command

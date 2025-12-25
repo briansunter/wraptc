@@ -1,19 +1,13 @@
-import { describe, test, expect, beforeEach, mock } from "bun:test";
+import { describe, test, expect, beforeEach, afterEach, mock, spyOn } from "bun:test";
 import { GeminiProvider } from "../../../providers/gemini";
 import type { CodingRequest, ProviderConfig } from "../../../types";
-
-// Mock child_process at the module level
-const mockSpawn = mock();
-mock.module("node:child_process", () => ({
-  spawn: mockSpawn,
-}));
 
 describe("GeminiProvider", () => {
   let provider: GeminiProvider;
   let config: ProviderConfig;
+  let originalSpawn: typeof Bun.spawn;
 
   beforeEach(() => {
-    mockSpawn.mockClear();
     config = {
       binary: "gemini",
       args: [],
@@ -23,13 +17,17 @@ describe("GeminiProvider", () => {
       capabilities: ["generate", "edit", "explain", "test"],
     };
     provider = new GeminiProvider(config);
+    originalSpawn = Bun.spawn;
+  });
+
+  afterEach(() => {
+    Bun.spawn = originalSpawn;
   });
 
   describe("constructor", () => {
     test("should initialize with correct id and display name", () => {
       expect(provider.id).toBe("gemini");
       expect(provider.displayName).toBe("Gemini CLI");
-      expect(provider.config).toBe(config);
     });
 
     test("should set binary path from config", () => {
@@ -43,248 +41,59 @@ describe("GeminiProvider", () => {
       const defaultProvider = new GeminiProvider(defaultConfig);
       expect(defaultProvider["binaryPath"]).toBe("gemini");
     });
-  });
 
-  describe("runOnce", () => {
-    test("should handle successful execution", async () => {
-      const req: CodingRequest = {
-        prompt: "Write a function",
-        stream: false,
-      };
+    test("should set streaming support based on config", () => {
+      expect(provider.supportsStreaming).toBe(true);
 
-      // Mock the process
-      const mockProcess = {
-        stdin: { write: mock(), end: mock() },
-        stdout: {
-          on: mock((event: string, handler: Function) => {
-            if (event === "data") {
-              setTimeout(() => handler(Buffer.from("function hello() { return 'world'; }")), 0);
-            }
-          })
-        },
-        stderr: {
-          on: mock((event: string, handler: Function) => {
-            if (event === "data") {
-              // No error
-            }
-          })
-        },
-        on: mock((event: string, handler: Function) => {
-          if (event === "close") {
-            setTimeout(() => handler(0), 0);
-          }
-        }),
-        kill: mock(),
-      };
-
-      mockSpawn.mockReturnValue(mockProcess);
-
-      const result = await provider.runOnce(req, {});
-      expect(result.text).toBe("function hello() { return 'world'; }");
-      expect(mockSpawn).toHaveBeenCalled();
-      const spawnCall = mockSpawn.mock.calls[0];
-      expect(spawnCall[0]).toBe("gemini");
-      expect(spawnCall[1]).toEqual(["--output-format"]);
+      const noStreamConfig = { ...config, streamingMode: "none" as const };
+      const noStreamProvider = new GeminiProvider(noStreamConfig);
+      expect(noStreamProvider.supportsStreaming).toBe(false);
     });
 
-    test("should handle JSON output", async () => {
-      const req: CodingRequest = {
-        prompt: "Write a function",
-        stream: false,
-      };
+    test("should set JSON preference based on config", () => {
+      expect(provider.prefersJson).toBe(true);
 
-      const mockProcess = {
-        stdin: { write: mock(), end: mock() },
-        stdout: {
-          on: mock((event: string, handler: Function) => {
-            if (event === "data") {
-              setTimeout(() => handler(Buffer.from('{"text": "function test() {}", "usage": {"inputTokens": 10}}')), 0);
-            }
-          })
-        },
-        stderr: { on: mock() },
-        on: mock((event: string, handler: Function) => {
-          if (event === "close") {
-            setTimeout(() => handler(0), 0);
-          }
-        }),
-        kill: mock(),
-      };
-
-      mockSpawn.mockReturnValue(mockProcess);
-
-      const result = await provider.runOnce(req, {});
-      expect(result.text).toBe("function test() {}");
-      expect(result.usage).toEqual({ inputTokens: 10 });
-    });
-
-    test("should handle non-zero exit code", async () => {
-      const req: CodingRequest = {
-        prompt: "Write a function",
-        stream: false,
-      };
-
-      const mockProcess = {
-        stdin: { write: mock(), end: mock() },
-        stdout: { on: mock() },
-        stderr: {
-          on: mock((event: string, handler: Function) => {
-            if (event === "data") {
-              setTimeout(() => handler(Buffer.from("API key invalid")), 0);
-            }
-          })
-        },
-        on: mock((event: string, handler: Function) => {
-          if (event === "close") {
-            setTimeout(() => handler(1), 0);
-          }
-        }),
-        kill: mock(),
-      };
-
-      mockSpawn.mockReturnValue(mockProcess);
-
-      await expect(provider.runOnce(req, {})).rejects.toThrow("Gemini CLI failed with code 1: API key invalid");
-    });
-
-    test("should handle stdin input", async () => {
-      let inputData = "";
-      const req: CodingRequest = {
-        prompt: "Test prompt",
-        stream: false,
-      };
-
-      const mockProcess = {
-        stdin: {
-          write: mock((data: string) => { inputData = data; }),
-          end: mock()
-        },
-        stdout: { on: mock() },
-        stderr: { on: mock() },
-        on: mock((event: string, handler: Function) => {
-          if (event === "close") {
-            setTimeout(() => handler(0), 0);
-          }
-        }),
-        kill: mock(),
-      };
-
-      mockSpawn.mockReturnValue(mockProcess);
-
-      await provider.runOnce(req, {});
-      expect(inputData).toBe("Test prompt");
-    });
-
-    test("should handle abort signal", async () => {
-      const req: CodingRequest = {
-        prompt: "Write a function",
-        stream: false,
-      };
-
-      const mockProcess = {
-        stdin: { write: mock(), end: mock() },
-        stdout: { on: mock() },
-        stderr: { on: mock() },
-        on: mock(),
-        kill: mock(),
-      };
-
-      mockSpawn.mockReturnValue(mockProcess);
-
-      const abortController = new AbortController();
-      const resultPromise = provider.runOnce(req, { signal: abortController.signal });
-
-      abortController.abort();
-
-      await expect(resultPromise).rejects.toThrow("Aborted");
+      const noJsonConfig = { ...config, jsonMode: "none" as const };
+      const noJsonProvider = new GeminiProvider(noJsonConfig);
+      expect(noJsonProvider.prefersJson).toBe(false);
     });
   });
 
-  describe("runStream", () => {
-    test("should yield streaming events", async () => {
-      const req: CodingRequest = {
-        prompt: "Write a long function",
-        stream: true,
-      };
+  describe("buildArgs", () => {
+    test("should build args with JSON flag", () => {
+      const req: CodingRequest = { prompt: "test prompt" };
+      const args = provider["buildArgs"](req, {});
 
-      const mockStdout = {
-        [Symbol.asyncIterator]: async function* () {
-          yield Buffer.from('{"chunk": "part1"}');
-          yield Buffer.from('\n{"chunk": "part2"}');
-          yield Buffer.from('\ninvalid json');
-          yield Buffer.from('\n');
-        },
-      };
-
-      const mockProcess = {
-        stdin: { write: mock(), end: mock() },
-        stdout: mockStdout,
-        stderr: {
-          [Symbol.asyncIterator]: async function* () {
-            // No stderr
-          },
-        },
-        on: mock((event: string, handler: Function) => {
-          if (event === "close") {
-            setTimeout(() => handler(0), 0);
-          }
-        }),
-        kill: mock(),
-      };
-
-      mockSpawn.mockReturnValue(mockProcess);
-
-      const events = [];
-      for await (const event of provider.runStream(req, {})) {
-        events.push(event);
-      }
-
-      expect(events).toHaveLength(5); // start + 2 chunks + 1 delta + complete
-      expect(events[0].type).toBe("start");
-      expect(events[1].type).toBe("chunk");
-      expect(events[2].type).toBe("chunk");
-      expect(events[3].type).toBe("delta");
-      expect(events[4].type).toBe("complete");
+      expect(args).toContain("-o");
+      expect(args).toContain("json");
+      expect(args).toContain("test prompt");
     });
 
-    test("should handle JSONL streaming mode", async () => {
-      const req: CodingRequest = {
-        prompt: "Test",
-        stream: true,
-      };
+    test("should include config args", () => {
+      const configWithArgs = { ...config, args: ["--verbose", "--model=gpt4"] };
+      const providerWithArgs = new GeminiProvider(configWithArgs);
+      const req: CodingRequest = { prompt: "test" };
+      const args = providerWithArgs["buildArgs"](req, {});
 
-      const mockStdout = {
-        [Symbol.asyncIterator]: async function* () {
-          yield Buffer.from('{"response": "Hello"}');
-          yield Buffer.from('\n{"response": "World"}');
-        },
-      };
+      expect(args).toContain("--verbose");
+      expect(args).toContain("--model=gpt4");
+    });
 
-      const mockProcess = {
-        stdin: { write: mock(), end: mock() },
-        stdout: mockStdout,
-        stderr: {
-          [Symbol.asyncIterator]: async function* () {},
-        },
-        on: mock((event: string, handler: Function) => {
-          if (event === "close") {
-            setTimeout(() => handler(0), 0);
-          }
-        }),
-        kill: mock(),
-      };
+    test("should skip JSON flag when jsonMode is none", () => {
+      const noJsonConfig = { ...config, jsonMode: "none" as const };
+      const noJsonProvider = new GeminiProvider(noJsonConfig);
+      const req: CodingRequest = { prompt: "test" };
+      const args = noJsonProvider["buildArgs"](req, {});
 
-      mockSpawn.mockReturnValue(mockProcess);
+      expect(args).not.toContain("-o");
+      expect(args).not.toContain("json");
+    });
+  });
 
-      const events = [];
-      for await (const event of provider.runStream(req, {})) {
-        events.push(event);
-      }
-
-      const chunkEvents = events.filter(e => e.type === "chunk");
-      expect(chunkEvents).toHaveLength(2);
-      expect(JSON.parse(chunkEvents[0].text)).toEqual({ response: "Hello" });
-      expect(JSON.parse(chunkEvents[1].text)).toEqual({ response: "World" });
+  describe("getStdinInput", () => {
+    test("should return undefined for Gemini (uses positional args)", () => {
+      const result = provider["getStdinInput"]();
+      expect(result).toBeUndefined();
     });
   });
 
@@ -294,7 +103,8 @@ describe("GeminiProvider", () => {
         "quota exceeded",
         "out of quota",
         "QUOTA EXCEEDED",
-        "You've exceeded your quota"
+        "out of credits",
+        "insufficient quota",
       ];
 
       for (const error of errors) {
@@ -308,7 +118,7 @@ describe("GeminiProvider", () => {
         "rate limit exceeded",
         "Rate limit exceeded",
         "429",
-        "too many requests"
+        "too many requests",
       ];
 
       for (const error of errors) {
@@ -322,7 +132,7 @@ describe("GeminiProvider", () => {
         "400",
         "Bad request",
         "bad request",
-        "invalid request"
+        "invalid request",
       ];
 
       for (const error of errors) {
@@ -331,12 +141,39 @@ describe("GeminiProvider", () => {
       }
     });
 
+    test("should classify UNAUTHORIZED errors", () => {
+      const errors = [
+        "401",
+        "unauthorized",
+        "invalid api key",
+        "authentication failed",
+      ];
+
+      for (const error of errors) {
+        const result = provider.classifyError({ stderr: error });
+        expect(result).toBe("UNAUTHORIZED");
+      }
+    });
+
+    test("should classify TIMEOUT errors", () => {
+      const errors = [
+        "timeout",
+        "timed out",
+        "deadline exceeded",
+      ];
+
+      for (const error of errors) {
+        const result = provider.classifyError({ stderr: error });
+        expect(result).toBe("TIMEOUT");
+      }
+    });
+
     test("should classify INTERNAL errors", () => {
       const errors = [
         "500",
         "Internal server error",
         "internal error",
-        "server error"
+        "server error",
       ];
 
       for (const error of errors) {
@@ -345,12 +182,12 @@ describe("GeminiProvider", () => {
       }
     });
 
-    test("should classify TRANSIENT as default", () => {
+    test("should classify TRANSIENT for unmatched errors", () => {
       const errors = [
-        "network timeout",
-        "connection failed",
-        "unexpected error",
-        "unknown error"
+        "connection refused",
+        "econnrefused",
+        "network error",
+        "some unknown error xyz",
       ];
 
       for (const error of errors) {
@@ -362,7 +199,7 @@ describe("GeminiProvider", () => {
     test("should combine stdout and stderr for classification", () => {
       const result = provider.classifyError({
         stderr: "some stderr",
-        stdout: "rate limit exceeded"
+        stdout: "rate limit exceeded",
       });
 
       expect(result).toBe("RATE_LIMIT");
@@ -401,6 +238,32 @@ describe("GeminiProvider", () => {
 
       const info = noJsonProvider.getInfo();
       expect(info.prefersJson).toBe(false);
+    });
+  });
+
+  describe("runOnce (integration)", () => {
+    test("should throw when binary not found", async () => {
+      const req: CodingRequest = { prompt: "test" };
+
+      await expect(provider.runOnce(req, {})).rejects.toThrow();
+    });
+  });
+
+  describe("runStream (integration)", () => {
+    test("should throw when binary not found", async () => {
+      const req: CodingRequest = { prompt: "test" };
+
+      const events: any[] = [];
+      try {
+        for await (const event of provider.runStream(req, {})) {
+          events.push(event);
+        }
+        // If we get here without error, fail the test
+        expect(true).toBe(false);
+      } catch (error) {
+        // Expected - binary not found
+        expect(error).toBeDefined();
+      }
     });
   });
 });

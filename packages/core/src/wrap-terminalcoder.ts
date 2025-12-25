@@ -4,6 +4,7 @@ import { Router } from "./router";
 import { GeminiProvider } from "./providers/gemini";
 import { QwenCodeProvider } from "./providers/qwen-code";
 import { CodexProvider } from "./providers/codex";
+import { OpenCodeProvider } from "./providers/opencode";
 import { CustomProvider } from "./providers/custom";
 import { ProviderFactory, RequestDeduplicator } from "./provider-factory";
 import type { CodingRequest, CodingResponse, CodingEvent, Config } from "./types";
@@ -59,6 +60,7 @@ export class WrapTerminalCoder {
     providerFactory.registerProvider("gemini", (id, cfg) => new GeminiProvider(cfg));
     providerFactory.registerProvider("qwen-code", (id, cfg) => new QwenCodeProvider(cfg));
     providerFactory.registerProvider("codex", (id, cfg) => new CodexProvider(cfg));
+    providerFactory.registerProvider("opencode", (id, cfg) => new OpenCodeProvider(cfg));
     providerFactory.registerCustomProvider((id, cfg) => new CustomProvider(id, cfg));
 
     // Create request deduplicator
@@ -146,6 +148,7 @@ export class WrapTerminalCoder {
       gemini: "Gemini CLI",
       "qwen-code": "Qwen Code CLI",
       codex: "Codex CLI",
+      opencode: "OpenCode Agent",
     };
     return displayNames[id] || id;
   }

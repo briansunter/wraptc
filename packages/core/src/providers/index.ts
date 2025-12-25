@@ -10,7 +10,7 @@ import type {
   ProviderInvokeOptions,
   TokenUsage,
 } from "../types";
-import { DEFAULT_ERROR_PATTERNS } from "../define-provider";
+import { DEFAULT_ERROR_PATTERNS } from "../error-patterns";
 
 // Re-export ProviderInvokeOptions for convenience
 export type { ProviderInvokeOptions };

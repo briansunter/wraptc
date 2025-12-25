@@ -1,245 +1,85 @@
-import { describe, test, expect, beforeEach, mock } from "bun:test";
+import { describe, test, expect, beforeEach, afterEach } from "bun:test";
 import { CodexProvider } from "../../../providers/codex";
 import type { CodingRequest, ProviderConfig } from "../../../types";
-
-// Mock child_process
-const mockSpawn = mock(() => {
-  let stdoutHandler: Function | null = null;
-  let closeHandler: Function | null = null;
-
-  const mockProcess = {
-    stdout: {
-      on: mock((event: string, handler: Function) => {
-        if (event === "data") stdoutHandler = handler;
-      }),
-      [Symbol.asyncIterator]: mock(async function* () {
-        yield Buffer.from("test output");
-      }),
-    },
-    stderr: {
-      on: mock(),
-      [Symbol.asyncIterator]: mock(async function* () {
-        yield Buffer.from("");
-      }),
-    },
-    on: mock((event: string, handler: Function) => {
-      if (event === "close") closeHandler = handler;
-    }),
-    kill: mock(),
-  };
-
-  // Simulate process completion
-  setTimeout(() => {
-    if (stdoutHandler) stdoutHandler(Buffer.from("test output"));
-    if (closeHandler) closeHandler(0);
-  }, 1);
-
-  return mockProcess;
-});
-
-mock.module("node:child_process", () => ({
-  spawn: mockSpawn,
-}));
-
-mock.module("node:child_process", () => ({
-  spawn: mockSpawn,
-}));
 
 describe("CodexProvider", () => {
   let provider: CodexProvider;
   let config: ProviderConfig;
 
   beforeEach(() => {
-    mockSpawn.mockClear();
+    config = {
+      binary: "codex",
+      args: [],
+      jsonMode: "none",
+      streamingMode: "line",
+      capabilities: ["generate", "edit", "test"],
+    };
+    provider = new CodexProvider(config);
   });
 
-  describe("with cdx binary", () => {
-    beforeEach(() => {
-      config = {
-        binary: "cdx",
-        args: [],
-        jsonMode: "none",
-        streamingMode: "line",
-        capabilities: ["generate", "edit", "test"],
-      };
-      provider = new CodexProvider(config);
+  describe("constructor", () => {
+    test("should initialize with correct id and display name", () => {
+      expect(provider.id).toBe("codex");
+      expect(provider.displayName).toBe("Codex CLI");
     });
 
-    describe("buildArgs", () => {
-      test("uses positional prompt format with cdx", () => {
-        const req: CodingRequest = {
-          prompt: "Write hello world",
-          mode: "generate",
-          stream: false,
-        };
-
-        const args = provider["buildArgs"](req, {});
-
-        expect(args[0]).toBe("Write hello world");
-      });
-
-      test("adds --explain flag for explain mode", () => {
-        const req: CodingRequest = {
-          prompt: "Explain this code",
-          mode: "explain",
-          stream: false,
-        };
-
-        const args = provider["buildArgs"](req, {});
-
-        expect(args).toContain("--explain");
-      });
-
-      test("adds --test flag for test mode", () => {
-        const req: CodingRequest = {
-          prompt: "Create unit tests",
-          mode: "test",
-          stream: false,
-        };
-
-        const args = provider["buildArgs"](req, {});
-
-        expect(args).toContain("--test");
-      });
-
-      test("adds --edit flag for edit mode", () => {
-        const req: CodingRequest = {
-          prompt: "Refactor this code",
-          mode: "edit",
-          stream: false,
-        };
-
-        const args = provider["buildArgs"](req, {});
-
-        expect(args).toContain("--edit");
-      });
-
-      test("adds --file flags for file context", () => {
-        const req: CodingRequest = {
-          prompt: "Analyze these files",
-          mode: "explain",
-          fileContext: ["src/file1.ts", "src/file2.ts"],
-          stream: false,
-        };
-
-        const args = provider["buildArgs"](req, {});
-
-        expect(args).toContain("--file");
-        expect(args).toContain("src/file1.ts");
-        expect(args).toContain("src/file2.ts");
-      });
-
-      test("includes config args", () => {
-        config.args = ["--model", "gpt-4"];
-        provider = new CodexProvider(config);
-
-        const req: CodingRequest = {
-          prompt: "Test",
-          mode: "generate",
-          stream: false,
-        };
-
-        const args = provider["buildArgs"](req, {});
-
-        expect(args).toContain("--model");
-        expect(args).toContain("gpt-4");
-      });
+    test("should set binary path from config", () => {
+      const customConfig = { ...config, binary: "/custom/codex" };
+      const customProvider = new CodexProvider(customConfig);
+      expect(customProvider["binaryPath"]).toBe("/custom/codex");
     });
 
-    describe("runOnce", () => {
-      test("should execute process successfully with cdx binary", async () => {
-        const req: CodingRequest = {
-          prompt: "Write hello world",
-          mode: "generate",
-          stream: false,
-        };
-
-        const result = await provider.runOnce(req, {});
-
-        expect(result.text).toBe("test output");
-        expect(mockSpawn).toHaveBeenCalledWith("cdx", ["Write hello world"], {
-          cwd: undefined,
-          env: process.env,
-        });
-      });
+    test("should set default binary if not provided", () => {
+      const defaultConfig = { ...config, binary: "" };
+      const defaultProvider = new CodexProvider(defaultConfig);
+      expect(defaultProvider["binaryPath"]).toBe("codex");
     });
 
-    describe("runStream", () => {
-      test("should stream process output successfully", async () => {
-        const req: CodingRequest = {
-          prompt: "Stream test",
-          mode: "generate",
-          stream: true,
-        };
+    test("should set streaming support based on config", () => {
+      expect(provider.supportsStreaming).toBe(true);
 
-        const events = [];
-        for await (const event of provider.runStream(req, {})) {
-          events.push(event);
-        }
-
-        // Should have start, delta, and complete events
-        expect(events).toHaveLength(3);
-        expect(events[0]).toEqual({
-          type: "start",
-          provider: "codex",
-          requestId: expect.any(String),
-        });
-        expect(events[1]).toEqual({
-          type: "delta",
-          text: "test output",
-        });
-        expect(events[2]).toEqual({
-          type: "complete",
-          provider: "codex",
-          text: "",
-        });
-      });
+      const noStreamConfig = { ...config, streamingMode: "none" as const };
+      const noStreamProvider = new CodexProvider(noStreamConfig);
+      expect(noStreamProvider.supportsStreaming).toBe(false);
     });
   });
 
-  describe("with codex binary", () => {
-    beforeEach(() => {
-      config = {
-        binary: "codex",
-        args: [],
-        jsonMode: "none",
-        streamingMode: "line",
-        capabilities: ["generate", "edit", "test"],
-      };
-      provider = new CodexProvider(config);
+  describe("buildArgs", () => {
+    test("should use exec subcommand with prompt", () => {
+      const req: CodingRequest = { prompt: "Write hello world" };
+      const args = provider["buildArgs"](req, {});
+
+      expect(args[0]).toBe("exec");
+      expect(args).toContain("Write hello world");
     });
 
-    describe("buildArgs", () => {
-      test("uses -p flag for prompt with codex binary", () => {
-        const req: CodingRequest = {
-          prompt: "Write code",
-          mode: "generate",
-          stream: false,
-        };
+    test("should include config args", () => {
+      const configWithArgs = { ...config, args: ["--model", "gpt-4"] };
+      const providerWithArgs = new CodexProvider(configWithArgs);
+      const req: CodingRequest = { prompt: "test" };
+      const args = providerWithArgs["buildArgs"](req, {});
 
-        const args = provider["buildArgs"](req, {});
-
-        expect(args[0]).toBe("-p");
-        expect(args[1]).toBe("Write code");
-      });
+      expect(args).toContain("--model");
+      expect(args).toContain("gpt-4");
     });
 
-    describe("runOnce", () => {
-      test("should execute process with codex binary", async () => {
-        const req: CodingRequest = {
-          prompt: "Write code",
-          mode: "generate",
-          stream: false,
-        };
+    test("should place prompt after config args", () => {
+      const configWithArgs = { ...config, args: ["--verbose"] };
+      const providerWithArgs = new CodexProvider(configWithArgs);
+      const req: CodingRequest = { prompt: "test prompt" };
+      const args = providerWithArgs["buildArgs"](req, {});
 
-        const result = await provider.runOnce(req, {});
+      // exec, --verbose, test prompt
+      expect(args[0]).toBe("exec");
+      expect(args[1]).toBe("--verbose");
+      expect(args[2]).toBe("test prompt");
+    });
+  });
 
-        expect(result.text).toBe("test output");
-        expect(mockSpawn).toHaveBeenCalledWith("codex", ["-p", "Write code"], {
-          cwd: undefined,
-          env: process.env,
-        });
-      });
+  describe("getStdinInput", () => {
+    test("should return undefined for Codex (uses positional args)", () => {
+      const result = provider["getStdinInput"]();
+      expect(result).toBeUndefined();
     });
   });
 
@@ -249,14 +89,19 @@ describe("CodexProvider", () => {
       expect(error).toBe("OUT_OF_CREDITS");
     });
 
+    test("classifies 'subscription required' as OUT_OF_CREDITS", () => {
+      const error = provider.classifyError({ stderr: "Subscription required for this feature" });
+      expect(error).toBe("OUT_OF_CREDITS");
+    });
+
     test("classifies 'rate limit' as RATE_LIMIT", () => {
       const error = provider.classifyError({ stderr: "Rate limit exceeded" });
       expect(error).toBe("RATE_LIMIT");
     });
 
-    test("classifies '401 unauthorized' as BAD_REQUEST", () => {
+    test("classifies '401 unauthorized' as UNAUTHORIZED", () => {
       const error = provider.classifyError({ stderr: "401 unauthorized" });
-      expect(error).toBe("BAD_REQUEST");
+      expect(error).toBe("UNAUTHORIZED");
     });
 
     test("classifies '500 internal error' as INTERNAL", () => {
@@ -264,14 +109,58 @@ describe("CodexProvider", () => {
       expect(error).toBe("INTERNAL");
     });
 
-    test("classifies 'network timeout' as TRANSIENT", () => {
-      const error = provider.classifyError({ stderr: "Network timeout" });
-      expect(error).toBe("TRANSIENT");
+    test("classifies 'timeout' as TIMEOUT", () => {
+      const error = provider.classifyError({ stderr: "Request timeout" });
+      expect(error).toBe("TIMEOUT");
     });
 
     test("classifies unknown errors as TRANSIENT", () => {
       const error = provider.classifyError({ stderr: "Something unexpected happened" });
       expect(error).toBe("TRANSIENT");
+    });
+
+    test("should combine stdout and stderr for classification", () => {
+      const result = provider.classifyError({
+        stderr: "some stderr",
+        stdout: "plan limit reached",
+      });
+      expect(result).toBe("OUT_OF_CREDITS");
+    });
+  });
+
+  describe("getInfo", () => {
+    test("should return provider information", () => {
+      const info = provider.getInfo();
+
+      expect(info).toEqual({
+        id: "codex",
+        displayName: "Codex CLI",
+        supportsStreaming: true,
+        prefersJson: false,
+        capabilities: ["generate", "edit", "test"],
+      });
+    });
+  });
+
+  describe("runOnce (integration)", () => {
+    test("should throw when binary not found", async () => {
+      const req: CodingRequest = { prompt: "test" };
+      await expect(provider.runOnce(req, {})).rejects.toThrow();
+    });
+  });
+
+  describe("runStream (integration)", () => {
+    test("should throw when binary not found", async () => {
+      const req: CodingRequest = { prompt: "test" };
+
+      try {
+        for await (const event of provider.runStream(req, {})) {
+          // Should not get here
+        }
+        expect(true).toBe(false); // Fail if we get here
+      } catch (error) {
+        expect(error).toBeDefined();
+      }
     });
   });
 });

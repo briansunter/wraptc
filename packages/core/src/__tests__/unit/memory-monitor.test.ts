@@ -310,7 +310,7 @@ describe("MemoryMonitor", () => {
       (monitor as any).triggerMemoryAlert("critical", stats);
 
       expect(console.error).toHaveBeenCalledWith(
-        "[MemoryMonitor] Memory usage critical! Consider:\n        1. Restarting the application\n        2. Reducing concurrent requests  \n        3. Implementing streaming limits\n        4. Adding more memory monitoring",
+        "[MemoryMonitor] Memory usage critical! Consider:\n        1. Restarting the application\n        2. Reducing concurrent requests\n        3. Implementing streaming limits\n        4. Adding more memory monitoring",
       );
     });
 

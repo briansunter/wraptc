@@ -213,28 +213,5 @@ export function defineProvider(config: ProviderDefinitionInput): ProviderDefinit
   };
 }
 
-// Default error patterns used when provider doesn't specify custom patterns
-// Note: More specific patterns must be checked BEFORE broader ones
-// The classifyError implementation iterates in insertion order
-export const DEFAULT_ERROR_PATTERNS: Record<ProviderErrorKind, string[]> = {
-  // Check rate limit first (before "limit exceeded" in OUT_OF_CREDITS)
-  RATE_LIMIT: ["rate limit", "rate_limit", "429", "too many requests"],
-  // Then check credits/quota
-  OUT_OF_CREDITS: ["quota exceeded", "out of quota", "credits exhausted", "insufficient quota", "quota limit"],
-  // Auth errors
-  UNAUTHORIZED: ["401", "unauthorized", "invalid api key", "authentication failed"],
-  FORBIDDEN: ["403", "forbidden", "access denied"],
-  // Request errors
-  BAD_REQUEST: ["400", "bad request", "invalid request", "malformed"],
-  NOT_FOUND: ["404", "not found"],
-  // Timeouts and limits
-  TIMEOUT: ["timeout", "timed out", "deadline exceeded"],
-  CONTEXT_LENGTH: ["context length", "too long", "max tokens", "context exceeded"],
-  CONTENT_FILTER: ["content filter", "safety filter", "blocked by", "flagged"],
-  // Server errors
-  INTERNAL: ["500", "internal error", "server error"],
-  // Transient/network
-  TRANSIENT: ["network error", "connection refused", "econnrefused", "temporary failure"],
-  // Unknown (empty, no patterns match)
-  UNKNOWN: [],
-};
+// Re-export from centralized error patterns module
+export { DEFAULT_ERROR_PATTERNS, classifyErrorDefault } from "./error-patterns";
