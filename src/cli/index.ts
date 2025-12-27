@@ -1,10 +1,10 @@
 #!/usr/bin/env bun
 
 import { Command } from "commander";
-import { WrapTerminalCoder } from "../core/index.js";
-import { CodingRequestSchema } from "../core/index.js";
-import type { CodingRequest } from "../core/index.js";
-import { runMCPServer } from "../mcp/server.js";
+import { WrapTerminalCoder } from "../core/index";
+import { CodingRequestSchema } from "../core/index";
+import type { CodingRequest } from "../core/index";
+import { runMCPServer } from "../mcp/server";
 
 const program = new Command();
 

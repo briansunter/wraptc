@@ -197,6 +197,9 @@ export interface ProviderState {
   lastReset?: string;
   outOfCreditsUntil?: string;
   lastErrors: string[];
+  consecutiveErrors?: number;
+  tokensSavedToday?: number;
+  totalTokensSaved?: number;
 }
 
 // Full state type

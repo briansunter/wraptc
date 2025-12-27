@@ -23,10 +23,9 @@
     }
   },
   "scripts": {
-    "build": "bun run build:core && bun run build:cli && bun run build:mcp",
-    "build:core": "bun build src/core/index.ts --outdir dist/core --target node",
-    "build:cli": "bun build src/cli/index.ts --outdir dist/cli --target node",
-    "build:mcp": "bun build src/mcp/server.ts --outdir dist/mcp --target bun",
+    "build": "bun run build:cli && bun run build:mcp",
+    "build:cli": "bun build src/cli/index.ts --outdir dist --target node --bundle",
+    "build:mcp": "bun build src/mcp/server.ts --outdir dist --target node --bundle",
     "dev": "bun --watch src/cli/index.ts",
     "test": "bun test",
     "test:unit": "bun test src/core/__tests__/unit/",
@@ -62,24 +61,13 @@
     "semantic-release": "^23.0.0",
     "typescript": "^5.0.0"
   },
-  "files": [
-    "src",
-    "bin",
-    "README.md",
-    "LICENSE",
-    "CHANGELOG.md"
-  ],
-  "keywords": [
-    "cli",
-    "ai",
-    "coding",
-    "terminal",
-    "mcp",
-    "agent",
-    "routing"
-  ],
+  "files": ["dist", "bin", "README.md", "LICENSE", "CHANGELOG.md"],
+  "keywords": ["cli", "ai", "coding", "terminal", "mcp", "agent", "routing"],
   "author": "",
   "license": "MIT",
+  "engines": {
+    "bun": ">=1.0.0"
+  },
   "packageManager": "bun@1.1.0",
   "publishConfig": {
     "access": "public"
