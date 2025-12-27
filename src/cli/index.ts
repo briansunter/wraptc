@@ -1,16 +1,27 @@
 #!/usr/bin/env bun
 
-import { WrapTerminalCoder } from "@wrap-terminalcoder/core";
-import { CodingRequestSchema } from "@wrap-terminalcoder/core";
-import type { CodingRequest } from "@wrap-terminalcoder/core";
+import { WrapTerminalCoder } from "../core/index.js";
+import { CodingRequestSchema } from "../core/index.js";
+import type { CodingRequest } from "../core/index.js";
 import { Command } from "commander";
+import { runMCPServer } from "../mcp/server.js";
 
 const program = new Command();
 
 program
-  .name("wtc")
-  .description("wrap-terminalcoder - unified CLI for multiple coding agents")
-  .version("0.1.0");
+  .name("wraptc")
+  .description("wraptc - unified CLI for multiple coding agents")
+  .version("0.1.0")
+  .option("--mcp", "Start MCP server mode");
+
+// Handle MCP mode flag
+program.hook('preAction', async (thisCommand) => {
+  const options = thisCommand.opts();
+  if (options.mcp) {
+    await runMCPServer();
+    process.exit(0);
+  }
+});
 
 program
   .command("ask")
@@ -38,9 +49,9 @@ program
       if (!prompt && process.stdin.isTTY) {
         console.error("Error: Prompt is required (use positional arg, -p, or pipe from stdin)");
         console.error("Examples:");
-        console.error("  wtc 'Write a function'");
-        console.error("  wtc -p 'Write a function'");
-        console.error("  echo 'Write a function' | wtc");
+        console.error("  wraptc 'Write a function'");
+        console.error("  wraptc -p 'Write a function'");
+        console.error("  echo 'Write a function' | wraptc");
         process.exit(1);
       }
 
@@ -126,6 +137,13 @@ program
       console.error("Error:", error instanceof Error ? error.message : String(error));
       process.exit(1);
     }
+  });
+
+program
+  .command("mcp")
+  .description("Start MCP server")
+  .action(async () => {
+    await runMCPServer();
   });
 
 program.parse();

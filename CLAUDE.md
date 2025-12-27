@@ -41,7 +41,7 @@ bun run build
 
 ## Architecture
 
-wrap-terminalcoder is a unified CLI wrapper for multiple coding AI agents (Gemini CLI, OpenCode, Qwen Code, Codex CLI). It's structured as a Bun monorepo with three packages:
+wraptc is a unified CLI wrapper for multiple coding AI agents (Gemini CLI, OpenCode, Qwen Code, Codex CLI). It's structured as a Bun monorepo with three packages:
 
 ### Package Structure
 
@@ -53,9 +53,9 @@ wrap-terminalcoder is a unified CLI wrapper for multiple coding AI agents (Gemin
 
 **Router (`router.ts`)**: Selects providers based on priority, availability, and credit limits. Supports per-mode routing overrides and automatic fallback on failures.
 
-**StateManager (`state.ts`)**: Persists provider state to `~/.config/wrap-terminalcoder/state.json`. Tracks daily request counts, credit exhaustion, and error history. Uses atomic writes and debounced saves.
+**StateManager (`state.ts`)**: Persists provider state to `~/.config/wraptc/state.json`. Tracks daily request counts, credit exhaustion, and error history. Uses atomic writes and debounced saves.
 
-**ConfigLoader (`config.ts`)**: Merges configs from multiple sources in order: defaults → `/etc/wrap-terminalcoder/config.json` → `~/.config/wrap-terminalcoder/config.json` → `./.config/wrap-terminalcoder/config.json` → `WTC_*` env vars. Validates with Zod.
+**ConfigLoader (`config.ts`)**: Merges configs from multiple sources in order: defaults → `/etc/wraptc/config.json` → `~/.config/wraptc/config.json` → `./.config/wraptc/config.json` → `WTC_*` env vars. Validates with Zod.
 
 **Provider System**:
 - `Provider` interface (`providers/index.ts`) defines the contract
@@ -63,7 +63,7 @@ wrap-terminalcoder is a unified CLI wrapper for multiple coding AI agents (Gemin
 - Concrete providers: `GeminiProvider`, `QwenCodeProvider`, `CodexProvider`, `CustomProvider`
 - `ProviderFactory` (`provider-factory.ts`) enables lazy loading of providers
 
-**WrapTerminalCoder (`wrap-terminalcoder.ts`)**: Main entry point that wires together ConfigLoader, StateManager, ProviderFactory, and Router. Uses `LazyProviderMap` for on-demand provider loading.
+**WrapTerminalCoder (`wraptc.ts`)**: Main entry point that wires together ConfigLoader, StateManager, ProviderFactory, and Router. Uses `LazyProviderMap` for on-demand provider loading.
 
 ### Error Handling
 

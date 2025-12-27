@@ -11,3 +11,8 @@ dist/
 test-results/
 state.json
 state.json.tmp
+
+# npm / semantic-release
+.npmrc.local
+*.tgz
+dist/

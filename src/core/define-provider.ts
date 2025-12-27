@@ -4,7 +4,7 @@
  * This enables users to add new CLI tools by creating a simple .ts file:
  *
  * ```typescript
- * // ~/.config/wrap-terminalcoder/providers/my-cli.ts
+ * // ~/.config/wraptc/providers/my-cli.ts
  * import { defineProvider } from "wrap-terminalcoder";
  *
  * export default defineProvider({

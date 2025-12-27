@@ -1,0 +1,15 @@
+#!/usr/bin/env node
+
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+
+const args = process.argv.slice(2);
+
+// Check if --mcp flag is present or first command is 'mcp'
+if (args.includes('--mcp') || args[0] === 'mcp') {
+  // Run MCP server
+  await import('../dist/mcp/server.js');
+} else {
+  // Run CLI
+  await import('../dist/cli/index.js');
+}

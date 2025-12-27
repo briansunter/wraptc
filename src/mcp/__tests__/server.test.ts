@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, mock, spyOn, test } from "bun:test";
-import type { CodingRequest } from "@wrap-terminalcoder/core";
-import { WrapTerminalCoderMCPServer } from "./server";
+import type { CodingRequest } from "../../core/index.js";
+import { WrapTerminalCoderMCPServer } from "../server.js";
 
 // Mock WrapTerminalCoder
 const mockRoute = mock(async (request: CodingRequest) => ({
@@ -32,7 +32,7 @@ const mockWrapTerminalCoder = {
   getProviderInfo: mockGetProviderInfo,
 };
 
-mock.module("@wrap-terminalcoder/core", () => ({
+mock.module("../../core/index.js", () => ({
   WrapTerminalCoder: {
     create: mock(async () => mockWrapTerminalCoder),
   },

@@ -136,7 +136,7 @@ export class ConfigLoader {
   }
 
   private async loadProjectConfig(): Promise<Config | null> {
-    const projectPath = this.options.projectConfigPath || ".config/wrap-terminalcoder/config.json";
+    const projectPath = this.options.projectConfigPath || ".config/wraptc/config.json";
     return this.loadConfigFile(projectPath);
   }
 

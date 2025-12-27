@@ -1,4 +1,4 @@
-# wrap-terminalcoder
+# wraptc
 
 A unified CLI wrapper for multiple coding AI agents (Gemini CLI, OpenCode, Qwen Code, Codex CLI) with intelligent routing, credit tracking, and automatic fallback.
 
@@ -17,13 +17,14 @@ A unified CLI wrapper for multiple coding AI agents (Gemini CLI, OpenCode, Qwen 
 
 ```bash
 # Clone and build
-git clone <repository>
-cd wrap-terminalcoder
+git clone https://github.com/briansunter/wraptc.git
+cd wraptc
 bun install
 bun run build
 
-# Install globally (optional)
-cd packages/cli
+# Install globally
+npm link
+# or
 bun link
 ```
 
@@ -33,16 +34,16 @@ bun link
 
 ```bash
 # Simple request using best available provider
-wtc ask -p "Write a TypeScript function that reverses a string"
+wraptc ask -p "Write a TypeScript function that reverses a string"
 
 # Specify a provider
-wtc ask -p "Explain this code" --provider gemini
+wraptc ask -p "Explain this code" --provider gemini
 
 # Include file context
-wtc ask -p "Refactor this module" -f src/utils.ts -f src/main.ts
+wraptc ask -p "Refactor this module" -f src/utils.ts -f src/main.ts
 
 # Stream response
-wtc ask -p "Create unit tests" --stream --output jsonl
+wraptc ask -p "Create unit tests" --stream --output jsonl
 ```
 
 ### Output Formats
@@ -66,23 +67,23 @@ wtc ask -p "Create unit tests" --stream --output jsonl
 **Text**:
 
 ```bash
-wtc ask -p "Write a function" --output text
+wraptc ask -p "Write a function" --output text
 ```
 
 ## Configuration
 
-wrap-terminalcoder uses a layered configuration system:
+wraptc uses a layered configuration system:
 
 1. Built-in defaults
-2. System config: `/etc/wrap-terminalcoder/config.json`
-3. User config: `~/.config/wrap-terminalcoder/config.json`
-4. Project config: `./.config/wrap-terminalcoder/config.json`
+2. System config: `/etc/wraptc/config.json`
+3. User config: `~/.config/wraptc/config.json`
+4. Project config: `./.config/wraptc/config.json`
 5. Environment variables: `WTC_*`
 6. CLI flags
 
 ### Example Configuration
 
-Create `~/.config/wrap-terminalcoder/config.json`:
+Create `~/.config/wraptc/config.json`:
 
 ```json
 {
@@ -173,18 +174,18 @@ You can add new providers via configuration:
 Override config with environment variables:
 
 ```bash
-WTC_ROUTING__DEFAULT_ORDER='["gemini","codex"]' wtc ask -p "Hello"
-WTC_REQUEST__PROVIDER="gemini" wtc ask -p "Hello"
+WRAPTC_ROUTING__DEFAULT_ORDER='["gemini","codex"]' wraptc ask -p "Hello"
+WRAPTC_REQUEST__PROVIDER="gemini" wraptc ask -p "Hello"
 ```
 
 ## CLI Commands
 
-### `wtc ask`
+### `wraptc ask`
 
 Send a coding request to the best available provider.
 
 ```bash
-wtc ask -p "Your prompt" [options]
+wraptc ask -p "Your prompt" [options]
 
 Options:
   -p, --prompt <prompt>       The prompt to send
@@ -199,21 +200,21 @@ Options:
   --config <path>             Config file path
 ```
 
-### `wtc providers`
+### `wraptc providers`
 
 List all available providers and their status.
 
 ```bash
-wtc providers
+wraptc providers
 ```
 
-### `wtc reset`
+### `wraptc reset`
 
 Reset provider state (counters, error tracking).
 
 ```bash
-wtc reset --provider qwen-code  # Reset specific provider
-wtc reset --all                  # Reset all providers
+wraptc reset --provider qwen-code  # Reset specific provider
+wraptc reset --all                  # Reset all providers
 ```
 
 ### `ultrathink`
@@ -226,7 +227,7 @@ ultrathink -p "Explain this complex algorithm in detail"
 
 ## MCP Server
 
-The MCP server exposes wrap-terminalcoder functionality to MCP clients.
+The MCP server exposes wraptc functionality to MCP clients.
 
 ### Running the MCP Server
 
@@ -335,7 +336,7 @@ When a provider fails, the router automatically tries the next available provide
 
 ## State File
 
-State is persisted to `~/.config/wrap-terminalcoder/state.json`:
+State is persisted to `~/.config/wraptc/state.json`:
 
 ```json
 {
@@ -379,37 +380,37 @@ bun run typecheck
 ### Generate Code
 
 ```bash
-wtc ask -p "Write a Python function to parse CSV data" --language python
+wraptc ask -p "Write a Python function to parse CSV data" --language python
 ```
 
 ### Explain Code
 
 ```bash
-wtc ask -p "Explain this function" -f src/complex.ts --mode explain
+wraptc ask -p "Explain this function" -f src/complex.ts --mode explain
 ```
 
 ### Edit with Context
 
 ```bash
-wtc ask -p "Refactor to use async/await" -f src/api.ts --mode edit
+wraptc ask -p "Refactor to use async/await" -f src/api.ts --mode edit
 ```
 
 ### Test Generation
 
 ```bash
-wtc ask -p "Create unit tests" -f src/utils.ts --mode test
+wraptc ask -p "Create unit tests" -f src/utils.ts --mode test
 ```
 
 ### Stream Response
 
 ```bash
-wtc ask -p "Write a long document" --stream --output jsonl
+wraptc ask -p "Write a long document" --stream --output jsonl
 ```
 
 ### Check Provider Status
 
 ```bash
-wtc providers
+wraptc providers
 ```
 
 ## Troubleshooting
@@ -428,13 +429,13 @@ gemini --help  # Should work
 Check provider status:
 
 ```bash
-wtc providers
+wraptc providers
 ```
 
 Reset if needed:
 
 ```bash
-wtc reset --provider qwen-code
+wraptc reset --provider qwen-code
 ```
 
 ### Configuration Issues
@@ -443,7 +444,7 @@ Validate your config:
 
 ```bash
 # The tool validates on startup and will show errors
-wtc ask -p "test" --dry-run
+wraptc ask -p "test" --dry-run
 ```
 
 ### Debug Mode
@@ -451,8 +452,63 @@ wtc ask -p "test" --dry-run
 Enable debug logging:
 
 ```bash
-DEBUG=1 wtc ask -p "Hello"
+DEBUG=1 wraptc ask -p "Hello"
 ```
+
+## MCP Server
+
+wraptc includes an MCP (Model Context Protocol) server for integration with Claude Desktop and other MCP-compatible tools.
+
+### Starting the MCP Server
+
+```bash
+# Using the --mcp flag
+wraptc --mcp
+
+# Or using the mcp command
+wraptc mcp
+```
+
+### MCP Tools
+
+The MCP server exposes the following tools:
+
+- **run_coding_task**: Execute a coding task using the best available provider
+- **get_providers**: List all available providers and their current status
+- **dry_run**: Show which provider would be used for a request without executing it
+
+### Claude Desktop Integration
+
+Add to your Claude Desktop configuration (`claude_desktop_config.json`):
+
+```json
+{
+  "mcpServers": {
+    "wraptc": {
+      "command": "wraptc",
+      "args": ["--mcp"]
+    }
+  }
+}
+```
+
+## Publishing
+
+This project uses **Bitwarden Secrets Manager (BWS)** for secure npm token management in CI/CD. See [docs/PUBLISHING_CHECKLIST.md](docs/PUBLISHING_CHECKLIST.md) for setup instructions and [docs/PUBLISHING.md](docs/PUBLISHING.md) for detailed documentation.
+
+**Why BWS?**
+- No npm tokens stored in GitHub Secrets
+- On-demand secret retrieval with audit logs
+- Centralized secret management
+- Works with Bun (unlike OIDC)
+- Single location for token rotation
+
+**Quick setup:**
+1. Create BWS project: `bws project create "npm-publishing"`
+2. Store npm token in BWS: `bws secret create NPM_TOKEN "<token>" <project-id>`
+3. Add `BWS_ACCESS_TOKEN` and `BWS_NPM_TOKEN_ID` to GitHub Secrets
+4. Push to `master` branch with conventional commits
+5. GitHub Actions fetches token from BWS and publishes!
 
 ## License
 

@@ -2,7 +2,7 @@
  * Provider Loader - Dynamically loads provider configs from .ts files
  *
  * Scans these directories for provider definitions:
- * 1. ~/.config/wrap-terminalcoder/providers/*.ts (user providers)
+ * 1. ~/.config/wraptc/providers/*.ts (user providers)
  * 2. ./.wtc/providers/*.ts (project-local providers)
  *
  * Bun imports TypeScript directly - no build step required!

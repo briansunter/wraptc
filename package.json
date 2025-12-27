@@ -1,25 +1,94 @@
 {
-  "name": "wrap-terminalcoder",
+  "name": "wraptc",
   "version": "0.1.0",
+  "description": "Unified CLI wrapper for multiple coding AI agents with intelligent routing",
   "type": "module",
-  "workspaces": ["packages/*"],
+  "main": "./dist/core/index.js",
+  "types": "./dist/core/index.d.ts",
+  "bin": {
+    "wraptc": "./bin/wraptc"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/core/index.d.ts",
+      "import": "./dist/core/index.js"
+    },
+    "./cli": {
+      "types": "./dist/cli/index.d.ts",
+      "import": "./dist/cli/index.js"
+    },
+    "./mcp": {
+      "types": "./dist/mcp/server.d.ts",
+      "import": "./dist/mcp/server.js"
+    }
+  },
   "scripts": {
-    "build": "bun run --cwd packages/core build && bun run --cwd packages/cli build && bun run --cwd packages/mcp-server build",
-    "dev": "bun run --cwd packages/cli dev",
+    "build": "bun run build:core && bun run build:cli && bun run build:mcp",
+    "build:core": "bun build src/core/index.ts --outdir dist/core --target node",
+    "build:cli": "bun build src/cli/index.ts --outdir dist/cli --target node",
+    "build:mcp": "bun build src/mcp/server.ts --outdir dist/mcp --target bun",
+    "dev": "bun --watch src/cli/index.ts",
     "test": "bun test",
+    "test:unit": "bun test src/core/__tests__/unit/",
+    "test:integration": "bun test src/core/__tests__/integration/",
+    "test:cli": "bun test src/cli/__tests__/",
+    "test:mcp": "bun test src/mcp/__tests__/",
     "test:coverage": "bun test --coverage",
-    "test:coverage:html": "bun test --coverage && bun coverage:html",
     "test:watch": "bun test --watch",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
-    "coverage:report": "bun test --coverage && nyc report --reporter=text --reporter=html --reporter=lcov",
-    "coverage:check": "bun test --coverage && nyc check-coverage --lines 95 --functions 95 --branches 95"
+    "typecheck": "tsc --noEmit",
+    "release:dry-run": "bunx -y semantic-release --dry-run --branches master --no-ci",
+    "release": "bunx -y semantic-release --branches master"
+  },
+  "dependencies": {
+    "commander": "^12.0.0",
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "zod": "^3.22.0"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.8.0",
     "@istanbuljs/nyc-config-typescript": "^1.0.2",
     "@types/bun": "latest",
-    "nyc": "^17.1.0"
+    "@types/node": "^20.0.0",
+    "nyc": "^17.1.0",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^10.0.5",
+    "@semantic-release/npm": "^12.0.1",
+    "@semantic-release/commit-analyzer": "^12.0.0",
+    "@semantic-release/release-notes-generator": "^13.0.0",
+    "semantic-release": "^23.0.0",
+    "typescript": "^5.0.0"
   },
-  "packageManager": "bun@1.1.0"
+  "files": [
+    "dist",
+    "bin",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "keywords": [
+    "cli",
+    "ai",
+    "coding",
+    "terminal",
+    "mcp",
+    "agent",
+    "routing"
+  ],
+  "author": "",
+  "license": "MIT",
+  "packageManager": "bun@1.1.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/briansunter/wraptc.git"
+  },
+  "bugs": {
+    "url": "https://github.com/briansunter/wraptc/issues"
+  },
+  "homepage": "https://github.com/briansunter/wraptc#readme"
 }

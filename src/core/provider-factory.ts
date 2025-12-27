@@ -92,7 +92,7 @@ export function clearBinaryCache(): void {
  * Supports three provider sources:
  * 1. Built-in providers (registered with registerProvider)
  * 2. Config-defined providers (from config.providers)
- * 3. User-defined providers (from ~/.config/wrap-terminalcoder/providers/*.ts)
+ * 3. User-defined providers (from ~/.config/wraptc/providers/*.ts)
  */
 export class ProviderFactory {
   private config: Config;

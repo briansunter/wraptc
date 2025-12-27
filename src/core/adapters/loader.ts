@@ -2,7 +2,7 @@
  * AdapterLoader - Load adapter definitions from files
  *
  * Supports loading .ts adapter files from:
- * - ~/.config/wrap-terminalcoder/adapters/
+ * - ~/.config/wraptc/adapters/
  * - ./.wtc/adapters/
  */
 

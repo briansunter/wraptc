@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, mock, test } from "bun:test";
-import { WrapTerminalCoder } from "@wrap-terminalcoder/core";
-import { ConfigLoader } from "@wrap-terminalcoder/core";
-import { StateManager } from "@wrap-terminalcoder/core";
-import { Router } from "@wrap-terminalcoder/core";
+import { WrapTerminalCoder } from "../../core/index.js";
+import { ConfigLoader } from "../../core/index.js";
+import { StateManager } from "../../core/index.js";
+import { Router } from "../../core/index.js";
 
 // Mock the core modules
-mock.module("@wrap-terminalcoder/core", () => {
+mock.module("../../core/index.js", () => {
   return {
     WrapTerminalCoder: {
       create: mock(async () => ({

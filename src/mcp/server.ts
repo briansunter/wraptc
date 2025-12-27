@@ -3,8 +3,8 @@
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
-import { CodingRequestSchema, WrapTerminalCoder } from "@wrap-terminalcoder/core";
-import type { CodingRequest } from "@wrap-terminalcoder/core";
+import { CodingRequestSchema, WrapTerminalCoder } from "../core/index.js";
+import type { CodingRequest } from "../core/index.js";
 import { z } from "zod";
 
 // Tool schemas
@@ -264,6 +264,12 @@ class WrapTerminalCoderMCPServer {
     await this.server.connect(transport);
     console.error("Wrap TerminalCoder MCP server running on stdio");
   }
+}
+
+// Exportable function to run MCP server
+export async function runMCPServer(): Promise<void> {
+  const server = new WrapTerminalCoderMCPServer();
+  await server.run();
 }
 
 // Run server if executed directly
