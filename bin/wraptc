@@ -1,7 +1,4 @@
-#!/usr/bin/env node
-
-import { createRequire } from 'module';
-const require = createRequire(import.meta.url);
+#!/usr/bin/env bun
 
 const args = process.argv.slice(2);
 

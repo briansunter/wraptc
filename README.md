@@ -15,16 +15,20 @@ A unified CLI wrapper for multiple coding AI agents (Gemini CLI, OpenCode, Qwen 
 
 ## Installation
 
+**Requires: [Bun](https://bun.sh/) runtime**
+
 ```bash
-# Clone and build
+# Install via npm (requires Bun to be installed)
+npm install -g wraptc
+
+# Or install via bun
+bun install -g wraptc
+
+# Or clone and build from source
 git clone https://github.com/briansunter/wraptc.git
 cd wraptc
 bun install
 bun run build
-
-# Install globally
-npm link
-# or
 bun link
 ```
 
