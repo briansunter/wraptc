@@ -59,7 +59,12 @@ jobs:
           rm -rf ~/.config/wraptc
           rm -rf .config/wraptc
           # Unset any WTC_ environment variables
-          unset $(env | grep -o '^WTC_[^=]*' || true)
+          for var in $(env | grep -o '^WTC_[^=]*' || true); do
+            unset "$var"
+          done
+          # Also set explicit empty values to be safe
+          export WTC_ROUTING_DEFAULT_ORDER=""
+          export WTC_REQUEST_PROVIDER=""
 
       - name: Lint
         run: bun run lint
