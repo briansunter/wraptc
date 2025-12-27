@@ -54,6 +54,7 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Clean environment for tests
+        shell: bash
         run: |
           # Remove any existing config files
           rm -rf ~/.config/wraptc
