@@ -53,6 +53,14 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
+      - name: Clean environment for tests
+        run: |
+          # Remove any existing config files
+          rm -rf ~/.config/wraptc
+          rm -rf .config/wraptc
+          # Unset any WTC_ environment variables
+          unset $(env | grep -o '^WTC_[^=]*' || true)
+
       - name: Lint
         run: bun run lint
 
