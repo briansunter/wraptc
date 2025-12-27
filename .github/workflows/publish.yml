@@ -72,6 +72,9 @@ jobs:
       - name: Type check
         run: bun run build
 
+      - name: Remove dist before tests
+        run: rm -rf dist/
+
       - name: Run tests
         run: bun test
 
