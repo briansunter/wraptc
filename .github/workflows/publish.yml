@@ -222,9 +222,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ steps.bws.outputs.NPM_TOKEN }}
 
-      - name: Show package versions
+      - name: Show package version
         run: |
-          echo "Current package versions:"
-          echo "Core: $(node -e "console.log(require('./packages/core/package.json').version)")"
-          echo "CLI: $(node -e "console.log(require('./packages/cli/package.json').version)")"
-          echo "MCP Server: $(node -e "console.log(require('./packages/mcp-server/package.json').version)")"
+          echo "Current package version:"
+          echo "wraptc: $(node -e "console.log(require('./package.json').version)")"
