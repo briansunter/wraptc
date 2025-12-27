@@ -150,7 +150,7 @@ jobs:
         run: |
           bunx -y semantic-release \
             --branches master \
-            --tagFormat "v${version}" \
+            --tagFormat 'v${version}' \
             --repositoryUrl "https://github.com/${{ github.repository }}.git"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
