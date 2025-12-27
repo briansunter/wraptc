@@ -145,6 +145,9 @@ jobs:
         env:
           NPM_TOKEN: ${{ steps.bws.outputs.NPM_TOKEN }}
 
+      - name: Build package
+        run: bun run build
+
       - name: Release with semantic-release
         id: release
         run: |
