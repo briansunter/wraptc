@@ -3,9 +3,9 @@
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
+import { z } from "zod";
 import { CodingRequestSchema, WrapTerminalCoder } from "../core/index.js";
 import type { CodingRequest } from "../core/index.js";
-import { z } from "zod";
 
 // Tool schemas
 const RunCodingTaskSchema = z.object({

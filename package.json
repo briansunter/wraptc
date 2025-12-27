@@ -35,7 +35,7 @@
     "test:mcp": "bun test src/mcp/__tests__/",
     "test:coverage": "bun test --coverage",
     "test:watch": "bun test --watch",
-    "lint": "biome check .",
+    "lint": "biome check . --diagnostic-level=error",
     "lint:fix": "biome check --write .",
     "typecheck": "tsc --noEmit",
     "release:dry-run": "bunx -y semantic-release --dry-run --branches master --no-ci",
@@ -61,22 +61,8 @@
     "semantic-release": "^23.0.0",
     "typescript": "^5.0.0"
   },
-  "files": [
-    "dist",
-    "bin",
-    "README.md",
-    "LICENSE",
-    "CHANGELOG.md"
-  ],
-  "keywords": [
-    "cli",
-    "ai",
-    "coding",
-    "terminal",
-    "mcp",
-    "agent",
-    "routing"
-  ],
+  "files": ["dist", "bin", "README.md", "LICENSE", "CHANGELOG.md"],
+  "keywords": ["cli", "ai", "coding", "terminal", "mcp", "agent", "routing"],
   "author": "",
   "license": "MIT",
   "packageManager": "bun@1.1.0",

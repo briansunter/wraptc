@@ -1,9 +1,9 @@
 #!/usr/bin/env bun
 
+import { Command } from "commander";
 import { WrapTerminalCoder } from "../core/index.js";
 import { CodingRequestSchema } from "../core/index.js";
 import type { CodingRequest } from "../core/index.js";
-import { Command } from "commander";
 import { runMCPServer } from "../mcp/server.js";
 
 const program = new Command();
@@ -15,7 +15,7 @@ program
   .option("--mcp", "Start MCP server mode");
 
 // Handle MCP mode flag
-program.hook('preAction', async (thisCommand) => {
+program.hook("preAction", async (thisCommand) => {
   const options = thisCommand.opts();
   if (options.mcp) {
     await runMCPServer();
