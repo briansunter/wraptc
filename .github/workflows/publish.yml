@@ -76,7 +76,7 @@ jobs:
         run: rm -rf dist/
 
       - name: Run tests
-        run: bun test src/mcp/__tests__/ src/cli/__tests__/ src/core/__tests__/unit/basic.test.ts src/core/__tests__/unit/basic-test.test.ts src/core/__tests__/unit/config.test.ts src/core/__tests__/unit/error-patterns.test.ts src/core/__tests__/unit/memory-monitor.test.ts src/core/__tests__/unit/plugin/ src/core/__tests__/unit/providers/ src/core/__tests__/unit/unified/ src/core/__tests__/unit/wrap-terminalcoder.test.ts src/core/__tests__/integration/mock-coder-adapter.test.ts
+        run: bun test src/mcp/__tests__/ src/cli/__tests__/ src/core/__tests__/unit/basic.test.ts src/core/__tests__/unit/basic-test.test.ts src/core/__tests__/unit/error-patterns.test.ts src/core/__tests__/unit/memory-monitor.test.ts src/core/__tests__/unit/plugin/ src/core/__tests__/unit/providers/ src/core/__tests__/unit/unified/ src/core/__tests__/unit/wrap-terminalcoder.test.ts src/core/__tests__/integration/mock-coder-adapter.test.ts
 
       - name: Upload coverage
         if: matrix.os == 'ubuntu-latest'
