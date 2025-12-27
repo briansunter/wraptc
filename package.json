@@ -1,6 +1,6 @@
 {
   "name": "wraptc",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Unified CLI wrapper for multiple coding AI agents with intelligent routing",
   "type": "module",
   "main": "./dist/core/index.js",
@@ -61,8 +61,22 @@
     "semantic-release": "^23.0.0",
     "typescript": "^5.0.0"
   },
-  "files": ["dist", "bin", "README.md", "LICENSE", "CHANGELOG.md"],
-  "keywords": ["cli", "ai", "coding", "terminal", "mcp", "agent", "routing"],
+  "files": [
+    "dist",
+    "bin",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "keywords": [
+    "cli",
+    "ai",
+    "coding",
+    "terminal",
+    "mcp",
+    "agent",
+    "routing"
+  ],
   "author": "",
   "license": "MIT",
   "engines": {
