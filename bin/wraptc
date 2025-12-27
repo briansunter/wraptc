@@ -4,9 +4,9 @@ const args = process.argv.slice(2);
 
 // Check if --mcp flag is present or first command is 'mcp'
 if (args.includes('--mcp') || args[0] === 'mcp') {
-  // Run MCP server
-  await import('../dist/mcp/server.js');
+  // Run MCP server from source
+  import('../src/mcp/server.ts');
 } else {
-  // Run CLI
-  await import('../dist/cli/index.js');
+  // Run CLI from source
+  import('../src/cli/index.ts');
 }
