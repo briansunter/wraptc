@@ -112,7 +112,6 @@ export async function watchProviderConfigs(
     }
 
     try {
-      // @ts-ignore - Bun.watch is a Bun-specific API
       const watcher = Bun.file(resolvedDir).watch();
 
       // Debounce reloads

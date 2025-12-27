@@ -425,14 +425,13 @@ export class AdapterError extends Error {
 }
 
 /**
- * Test helper interface that exposes private methods for testing.
+ * Test helper type that exposes private methods for testing.
  * Only use this in test files.
  */
-// @ts-ignore - Test helper accessing private methods
-export interface AdapterRunnerTestHelper extends AdapterRunner {
+export type AdapterRunnerTestHelper = AdapterRunner & {
   buildArgs(prompt: string, opts: AdapterInvokeOptions): string[];
   getStdin(prompt: string): string | undefined;
   parseOutput(stdout: string): AdapterResult;
   parseJsonOutput(stdout: string): AdapterResult;
   parseStreamLine(line: string): StreamChunk | null;
-}
+};
