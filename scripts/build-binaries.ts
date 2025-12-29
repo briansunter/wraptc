@@ -4,7 +4,7 @@
  * Compiles the CLI into standalone executables for multiple platforms
  */
 
-import path from "path";
+import path from "node:path";
 import { $ } from "bun";
 
 const BUILD_DIR = "binaries";
