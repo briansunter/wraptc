@@ -16,3 +16,6 @@ state.json.tmp
 .npmrc.local
 *.tgz
 dist/
+
+# Native binaries
+binaries/

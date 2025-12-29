@@ -1,0 +1,177 @@
+name: Release Binaries
+
+on:
+  release:
+    types: [created]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to build binaries for (e.g., v0.0.2)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  build-binaries:
+    name: Build ${{ matrix.os }} ${{ matrix.arch }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        include:
+          # macOS Intel
+          - os: macos
+            arch: x64
+            runner: macos-13
+            target: darwin-x64
+
+          # macOS ARM (Apple Silicon)
+          - os: macos
+            arch: arm64
+            runner: macos-latest
+            target: darwin-arm64
+
+          # Linux x64
+          - os: linux
+            arch: x64
+            runner: ubuntu-latest
+            target: linux-x64
+
+          # Linux ARM64
+          - os: linux
+            arch: arm64
+            runner: ubuntu-latest
+            target: linux-arm64
+
+          # Windows x64
+          - os: windows
+            arch: x64
+            runner: windows-latest
+            target: windows-x64
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref_name }}
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build CLI for ${{ matrix.target }}
+        shell: bash
+        run: |
+          mkdir -p binaries
+
+          # Set file extension
+          EXT=""
+          if [ "${{ matrix.os }}" == "windows" ]; then
+            EXT=".exe"
+          fi
+
+          # Build binary
+          bun build --compile src/cli/index.ts \
+            --outfile binaries/wraptc-${{ matrix.target }}${EXT} \
+            --target ${{ matrix.os }}-${{ matrix.arch }}
+
+          # Make executable (not for Windows)
+          if [ "${{ matrix.os }}" != "windows" ]; then
+            chmod +x binaries/wraptc-${{ matrix.target }}${EXT}
+          fi
+
+      - name: Upload to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            binaries/wraptc-${{ matrix.target }}*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  update-brew-formula:
+    name: Update Homebrew Formula
+    needs: build-binaries
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release' && github.repository == 'briansunter/wraptc'
+    steps:
+      - name: Checkout wraptc repo
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update Formula
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+          VERSION="${TAG#v}"
+
+          # Create formula file
+          cat > Formula/wraptc.rb << 'EOF'
+          # typed: strict
+          # frozen_string_literal: true
+
+          class Wraptc < Formula
+            desc "Unified CLI wrapper for multiple coding AI agents with intelligent routing"
+            homepage "https://github.com/briansunter/wraptc"
+            version "${VERSION}"
+
+            on_macos do
+              if Hardware::CPU.arm?
+                url "https://github.com/briansunter/wraptc/releases/download/${TAG}/wraptc-darwin-arm64"
+                sha256 "{{ arm64_sha }}"
+              else
+                url "https://github.com/briansunter/wraptc/releases/download/${TAG}/wraptc-darwin-x64"
+                sha256 "{{ x64_sha }}"
+              end
+            end
+
+            on_linux do
+              if Hardware::CPU.arm?
+                url "https://github.com/briansunter/wraptc/releases/download/${TAG}/wraptc-linux-arm64"
+                sha256 "{{ linux_arm64_sha }}"
+              else
+                url "https://github.com/briansunter/wraptc/releases/download/${TAG}/wraptc-linux-x64"
+                sha256 "{{ linux_x64_sha }}"
+              end
+            end
+
+            def install
+              bin.install "wraptc-darwin-#{Hardware::CPU.arch}" => "wraptc" if OS.mac?
+              bin.install "wraptc-linux-#{Hardware::CPU.arch}" => "wraptc" if OS.linux?
+            end
+
+            test do
+              system bin/"wraptc", "--version"
+            end
+          end
+          EOF
+
+          # Get SHA256 checksums
+          curl -LfsS "https://github.com/briansunter/wraptc/releases/download/${TAG}/wraptc-darwin-arm64" -o wraptc-darwin-arm64
+          curl -LfsS "https://github.com/briansunter/wraptc/releases/download/${TAG}/wraptc-darwin-x64" -o wraptc-darwin-x64
+          curl -LfsS "https://github.com/briansunter/wraptc/releases/download/${TAG}/wraptc-linux-arm64" -o wraptc-linux-arm64
+          curl -LfsS "https://github.com/briansunter/wraptc/releases/download/${TAG}/wraptc-linux-x64" -o wraptc-linux-x64
+
+          ARM64_SHA=$(shasum -a 256 wraptc-darwin-arm64 | awk '{print $1}')
+          X64_SHA=$(shasum -a 256 wraptc-darwin-x64 | awk '{print $1}')
+          LINUX_ARM64_SHA=$(shasum -a 256 wraptc-linux-arm64 | awk '{print $1}')
+          LINUX_X64_SHA=$(shasum -a 256 wraptc-linux-x64 | awk '{print $1}')
+
+          # Update formula with real checksums
+          sed -i "s/{{ arm64_sha }}/${ARM64_SHA}/" Formula/wraptc.rb
+          sed -i "s/{{ x64_sha }}/${X64_SHA}/" Formula/wraptc.rb
+          sed -i "s/{{ linux_arm64_sha }}/${LINUX_ARM64_SHA}/" Formula/wraptc.rb
+          sed -i "s/{{ linux_x64_sha }}/${LINUX_X64_SHA}/" Formula/wraptc.rb
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Formula/wraptc.rb
+          git commit -m "chore: update wraptc to ${VERSION} [skip ci]"
+          git push
+
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

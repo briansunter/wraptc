@@ -19,6 +19,7 @@
     "build": "bun run build:cli && bun run build:mcp",
     "build:cli": "bun build src/cli/index.ts --outdir dist --target node --bundle",
     "build:mcp": "bun build src/mcp/server.ts --outdir dist --target node --bundle",
+    "build:binaries": "bun scripts/build-binaries.ts",
     "dev": "bun --watch src/cli/index.ts",
     "test": "bun test",
     "test:unit": "bun test src/core/__tests__/unit/",
@@ -54,21 +55,8 @@
     "semantic-release": "^23.0.0",
     "typescript": "^5.0.0"
   },
-  "files": [
-    "dist",
-    "bin",
-    "README.md",
-    "LICENSE"
-  ],
-  "keywords": [
-    "cli",
-    "ai",
-    "coding",
-    "terminal",
-    "mcp",
-    "agent",
-    "routing"
-  ],
+  "files": ["dist", "bin", "README.md", "LICENSE"],
+  "keywords": ["cli", "ai", "coding", "terminal", "mcp", "agent", "routing"],
   "author": "",
   "license": "MIT",
   "engines": {
