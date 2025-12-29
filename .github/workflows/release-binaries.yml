@@ -75,10 +75,9 @@ jobs:
             EXT=".exe"
           fi
 
-          # Build binary
+          # Build binary (Bun compiles for the current platform)
           bun build --compile src/cli/index.ts \
-            --outfile binaries/wraptc-${{ matrix.target }}${EXT} \
-            --target ${{ matrix.os }}-${{ matrix.arch }}
+            --outfile binaries/wraptc-${{ matrix.target }}${EXT}
 
           # Make executable (not for Windows)
           if [ "${{ matrix.os }}" != "windows" ]; then
