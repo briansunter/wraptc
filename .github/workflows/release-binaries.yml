@@ -89,6 +89,7 @@ jobs:
         with:
           files: |
             binaries/wraptc-${{ matrix.target }}*
+          tag_name: ${{ github.event.inputs.tag || github.event.release.tag_name }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -96,7 +97,7 @@ jobs:
     name: Update Homebrew Formula
     needs: build-binaries
     runs-on: ubuntu-latest
-    if: github.event_name == 'release' && github.repository == 'briansunter/wraptc'
+    if: github.repository == 'briansunter/wraptc'
     steps:
       - name: Checkout wraptc repo
         uses: actions/checkout@v4
@@ -105,7 +106,7 @@ jobs:
 
       - name: Update Formula
         run: |
-          TAG="${{ github.event.release.tag_name }}"
+          TAG="${{ github.event.inputs.tag || github.event.release.tag_name }}"
           VERSION="${TAG#v}"
 
           # Create formula file
