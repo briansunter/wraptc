@@ -3,23 +3,16 @@
   "version": "0.0.1",
   "description": "Unified CLI wrapper for multiple coding AI agents with intelligent routing",
   "type": "module",
-  "main": "./dist/core/index.js",
-  "types": "./dist/core/index.d.ts",
+  "main": "./dist/index.js",
   "bin": {
     "wraptc": "./bin/wraptc"
   },
   "exports": {
     ".": {
-      "types": "./dist/core/index.d.ts",
-      "import": "./dist/core/index.js"
-    },
-    "./cli": {
-      "types": "./dist/cli/index.d.ts",
-      "import": "./dist/cli/index.js"
+      "import": "./dist/index.js"
     },
     "./mcp": {
-      "types": "./dist/mcp/server.d.ts",
-      "import": "./dist/mcp/server.js"
+      "import": "./dist/server.js"
     }
   },
   "scripts": {
