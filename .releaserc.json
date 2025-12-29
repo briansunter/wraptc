@@ -14,19 +14,7 @@
           { "type": "refactor", "release": "patch" },
           { "type": "docs", "release": "patch" },
           { "type": "chore", "scope": "release", "release": "patch" }
-        ],
-        "parserOpts": {
-          "revert": false,
-          "revertPattern": /^(?:Revert|revert:)\s"?([\s\S]+?)"?\s*This reverts commit (\w+)\./i,
-          "mergePattern": null,
-          "mergeCorrespondence": null,
-          "noteKeywords": ["BREAKING CHANGE", "BREAKING CHANGES", "BREAKING"],
-          "notesPattern": null,
-          "commitsSometimesFormatted": true,
-          "issuePrefixes": ["#"],
-          "issueUrlFormat": null,
-          "linkReferences": false
-        }
+        ]
       }
     ],
     [
