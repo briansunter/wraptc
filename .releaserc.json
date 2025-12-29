@@ -13,7 +13,8 @@
           { "type": "refactor", "release": "patch" },
           { "type": "docs", "release": "patch" },
           { "type": "chore", "scope": "release", "release": "patch" }
-        ]
+        ],
+        "defaultReleaseType": "patch"
       }
     ],
     [
