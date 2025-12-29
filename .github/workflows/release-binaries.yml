@@ -20,10 +20,10 @@ jobs:
     strategy:
       matrix:
         include:
-          # macOS Intel
+          # macOS (both Intel and ARM - using macos-latest which is Intel)
           - os: macos
             arch: x64
-            runner: macos-13
+            runner: macos-latest
             target: darwin-x64
 
           # macOS ARM (Apple Silicon)
