@@ -2,7 +2,7 @@
   "mcpServers": {
     "wraptc": {
       "command": "bunx",
-      "args": ["--bun", "wraptc", "mcp"],
+      "args": ["wraptc", "mcp"],
       "type": "stdio",
       "description": "Unified coding agent router for Gemini, OpenCode, Qwen, and Codex"
     }
