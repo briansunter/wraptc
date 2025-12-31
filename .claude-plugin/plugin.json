@@ -7,14 +7,5 @@
   },
   "repository": "https://github.com/briansunter/wraptc",
   "license": "MIT",
-  "keywords": [
-    "ai",
-    "coding",
-    "agents",
-    "gemini",
-    "qwen",
-    "codex",
-    "mcp",
-    "routing"
-  ]
+  "keywords": ["ai", "coding", "agents", "gemini", "qwen", "codex", "mcp", "routing"]
 }
