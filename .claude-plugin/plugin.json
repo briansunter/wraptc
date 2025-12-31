@@ -1,0 +1,20 @@
+{
+  "name": "wraptc",
+  "version": "1.0.0",
+  "description": "Unified CLI wrapper for multiple coding AI agents (Gemini, OpenCode, Qwen, Codex) with intelligent routing and credit tracking",
+  "author": {
+    "name": "Brian Sunter"
+  },
+  "repository": "https://github.com/briansunter/wraptc",
+  "license": "MIT",
+  "keywords": [
+    "ai",
+    "coding",
+    "agents",
+    "gemini",
+    "qwen",
+    "codex",
+    "mcp",
+    "routing"
+  ]
+}
