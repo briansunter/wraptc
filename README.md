@@ -1,6 +1,14 @@
+<p align="center">
+  <img src="docs/assets/logo.png" alt="wraptc — Unified CLI for multiple coding AI agents" width="280" />
+</p>
+
 # wraptc
 
 A unified CLI wrapper for multiple coding AI agents (Gemini CLI, OpenCode, Qwen Code, Codex CLI) with intelligent routing, credit tracking, and automatic fallback.
+
+## How it works
+
+![How wraptc works: a request flows from the CLI through intelligent routing (priority order, credit checks, blacklist filtering, per-mode overrides) to the chosen provider adapter (Gemini, OpenCode, Qwen Code, Codex, or a custom binary), then back as unified JSON output with usage tracking and automatic fallback when a provider fails or runs out of credits](docs/assets/architecture.png)
 
 ## Features
 
